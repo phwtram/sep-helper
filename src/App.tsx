@@ -57,6 +57,7 @@ import {
   FertilizersList,
   FertilizersShow,
 } from "./pages/fertilizers";
+import { ItemCreate, ItemEdit, ItemsList, ItemsShow } from "./pages/item";
 
 interface TitleHandlerOptions {
   resource?: IResourceItem;
@@ -169,7 +170,7 @@ const App: React.FC = () => {
               {
                 name: "item",
                 list: "/items",
-                create: "/items/create",
+                create: "/items/new",
                 edit: "/items/edit/:id",
                 show: "/items/show/:id",
                 meta: { parent: "material", canDelete: true },
@@ -314,7 +315,24 @@ const App: React.FC = () => {
                   <Route path=":id" element={<FertilizersShow />} />
                   <Route path="edit/:id" element={<FertilizersEdit />} />
                 </Route>
+
+
+                <Route
+                  path="/items"
+                  element={
+                    <ItemsList>
+                      <Outlet />
+                    </ItemsList>
+                  }
+                >
+                  <Route path="new" element={<ItemCreate />} />
+                  <Route path=":id" element={<ItemsShow />} />
+                  <Route path="edit/:id" element={<ItemEdit />} />
+                </Route>
               </Route>
+
+
+
 
               <Route
                 element={
@@ -382,7 +400,7 @@ const App: React.FC = () => {
           </Refine>
         </RefineKbarProvider>
       </ConfigProvider>
-    </BrowserRouter>
+    </BrowserRouter >
   );
 };
 
