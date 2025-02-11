@@ -69,6 +69,7 @@ export const ItemDrawerForm = (props: Props) => {
   };
 
   const image = Form.useWatch("image", formProps.form);
+  console.log("Selected image:", image);
   const title = props.action === "edit" ? "Edit Item" : "Add Item";
 
   const typeOptions = [
@@ -153,13 +154,47 @@ export const ItemDrawerForm = (props: Props) => {
             </Upload.Dragger>
           </Form.Item>
           <Flex vertical>
-            <Form.Item label="Name" name="name" rules={[{ required: true }]}> <Input /> </Form.Item>
-            <Form.Item label="Description" name="description"> <Input.TextArea rows={4} /> </Form.Item>
-            <Form.Item label="Type" name="type" rules={[{ required: true }]}> <Select options={typeOptions} /> </Form.Item>
-            <Form.Item label="Status" name="status" rules={[{ required: true }]}> <Select options={statusOptions} /> </Form.Item>
-            <Flex align="center" justify="space-between" style={{ padding: "16px" }}>
+            <Form.Item
+              label="Name"
+              name="name"
+              className={styles.formItem}
+              rules={[{ required: true }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Description"
+              name="description"
+              className={styles.formItem}
+              rules={[{ required: true }]}
+            >
+              <Input.TextArea rows={6} />
+            </Form.Item>
+            <Form.Item
+              label="Status"
+              name="status"
+              className={styles.formItem}
+              rules={[{ required: true }]}
+            >
+              <Select options={statusOptions} />
+            </Form.Item>
+            <Form.Item
+              label="Type"
+              name="type"
+              className={styles.formItem}
+              rules={[{ required: true }]}
+            >
+              <Select options={typeOptions} />
+            </Form.Item>
+            <Flex
+              align="center"
+              justify="space-between"
+              style={{ padding: "16px 16px 0px 16px" }}
+            >
               <Button onClick={onDrawerClose}>Cancel</Button>
-              <SaveButton {...saveButtonProps} htmlType="submit" type="primary"> Save </SaveButton>
+              <SaveButton {...saveButtonProps} htmlType="submit" type="primary" icon={null}>
+                Save
+              </SaveButton>
             </Flex>
           </Flex>
         </Form>

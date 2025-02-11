@@ -90,6 +90,7 @@ export type FertilizerStatus = "UnActived" | "InStock" | "OutStock";
 export type FertilizerType = "Organic" | "Chemical" | "Mixed";
 export type ItemStatus = "UnActived" | "InStock" | "OutStock";
 export type ItemType = "Productive" | "Harvestive" | "Packaging" | "Inspecting";
+export type ISeedTestKitColor = "Blue" | "Yellow" | "Red" | "Orange";
 
 export interface IFertilizer {
   id: number;
@@ -110,4 +111,26 @@ export interface IItem {
   image: string;
   status: ItemStatus;
   type: ItemType;
+}
+
+export interface ISeed {
+  SeedID: number;
+  SeedName: string;
+  Description: string;
+  IsAvailable: boolean;
+  MinTemp: number;
+  MaxTemp: number;
+  MinHumid: number;
+  MaxHumid: number;
+  MinMoisture: number;
+  MaxMoisture: number;
+  MinFertilizerQuantity: number;
+  MaxFertilizerQuantity: number;
+  FertilizerUnit: string;
+  MinPesticideQuantity: number;
+  MaxPesticideQuantity: number;
+  PesticideUnit: string;
+  MinBrixPoint: number;
+  MaxBrixPoint: number;
+  GTTestKitColor: ISeedTestKitColor;
 }

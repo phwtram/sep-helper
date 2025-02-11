@@ -45,6 +45,7 @@
     "i18next": "latest",
     "i18next-browser-languagedetector": "latest",
     "i18next-xhr-backend": "latest",
+    "json-server": "^1.0.0-beta.3",
     "lodash": "latest",
     "react": "latest",
     "react-dom": "latest",
