@@ -29,7 +29,7 @@ import {
 } from "@ant-design/icons";
 
 import { useLocation } from "react-router";
-import { ISeed, ISeedTestKitColor } from "@/interfaces";
+import { ISeed, SeedTestKitColor } from "@/interfaces";
 import { PaginationTotal } from "@/components/paginationTotal";
 
 export const SeedsListTable: React.FC = () => {
@@ -50,7 +50,7 @@ export const SeedsListTable: React.FC = () => {
     });
 
     // 🎨 Màu sắc GT Test Kit
-    const getGTTestKitColor = (color: ISeedTestKitColor | null | undefined) => {
+    const getGTTestKitColor = (color: SeedTestKitColor | null | undefined) => {
         switch (color) {
             case "Blue": return "blue";
             case "Yellow": return "gold";
@@ -74,7 +74,7 @@ export const SeedsListTable: React.FC = () => {
         >
             {/* ✅ ID */}
             <Table.Column
-                title="#"
+                title="ID"
                 dataIndex="SeedID"
                 key="SeedID"
                 width={80}
@@ -198,7 +198,7 @@ export const SeedsListTable: React.FC = () => {
                         icon={<EyeOutlined />}
                         onClick={() => {
                             go({
-                                to: `${showUrl("seeds", record.SeedID)}`,
+                                to: `${showUrl("seed", record.SeedID)}`,
                                 query: { to: pathname },
                                 options: { keepQuery: true },
                                 type: "replace",
