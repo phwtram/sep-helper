@@ -36,7 +36,7 @@ const ItemStatusTag = ({ status }: { status: ItemStatus }) => {
     InStock: "success",
     OutStock: "error",
   };
-  
+
   return <Tag color={colorMap[status]}>{status}</Tag>;
 };
 
@@ -47,7 +47,7 @@ const ItemTypeTag = ({ type }: { type: ItemType }) => {
     Packaging: "orange",
     Inspecting: "purple",
   };
-  
+
   return <Tag color={colorMap[type]}>{type}</Tag>;
 };
 

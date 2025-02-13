@@ -83,7 +83,7 @@ export const SeedDrawerForm = (props: Props) => {
           <Flex vertical>
             <Form.Item
               label="Seed Name"
-              name="SeedName"
+              name="name"
               className={styles.formItem}
               rules={[{ required: true }]}
             >
@@ -114,10 +114,18 @@ export const SeedDrawerForm = (props: Props) => {
             <Form.Item label="Temperature (°C)" className={styles.formItem}>
               <Flex gap={8}>
                 <Form.Item name="MinTemp" noStyle>
-                  <InputNumber min={0} placeholder="Min" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Min"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
                 <Form.Item name="MaxTemp" noStyle>
-                  <InputNumber min={0} placeholder="Max" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Max"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Flex>
             </Form.Item>
@@ -126,10 +134,20 @@ export const SeedDrawerForm = (props: Props) => {
             <Form.Item label="Humidity (%)" className={styles.formItem}>
               <Flex gap={8}>
                 <Form.Item name="MinHumid" noStyle>
-                  <InputNumber min={0} max={100} placeholder="Min" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    max={100}
+                    placeholder="Min"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
                 <Form.Item name="MaxHumid" noStyle>
-                  <InputNumber min={0} max={100} placeholder="Max" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    max={100}
+                    placeholder="Max"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Flex>
             </Form.Item>
@@ -138,10 +156,18 @@ export const SeedDrawerForm = (props: Props) => {
             <Form.Item label="Fertilizer (Kg)" className={styles.formItem}>
               <Flex gap={8}>
                 <Form.Item name="MinFertilizerQuantity" noStyle>
-                  <InputNumber min={0} placeholder="Min" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Min"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
                 <Form.Item name="MaxFertilizerQuantity" noStyle>
-                  <InputNumber min={0} placeholder="Max" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Max"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Flex>
             </Form.Item>
@@ -150,10 +176,18 @@ export const SeedDrawerForm = (props: Props) => {
             <Form.Item label="Pesticide (Litre)" className={styles.formItem}>
               <Flex gap={8}>
                 <Form.Item name="MinPesticideQuantity" noStyle>
-                  <InputNumber min={0} placeholder="Min" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Min"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
                 <Form.Item name="MaxPesticideQuantity" noStyle>
-                  <InputNumber min={0} placeholder="Max" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Max"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Flex>
             </Form.Item>
@@ -162,10 +196,18 @@ export const SeedDrawerForm = (props: Props) => {
             <Form.Item label="Brix Point" className={styles.formItem}>
               <Flex gap={8}>
                 <Form.Item name="MinBrixPoint" noStyle>
-                  <InputNumber min={0} placeholder="Min" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Min"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
                 <Form.Item name="MaxBrixPoint" noStyle>
-                  <InputNumber min={0} placeholder="Max" style={{ width: "100%" }} />
+                  <InputNumber
+                    min={0}
+                    placeholder="Max"
+                    style={{ width: "100%" }}
+                  />
                 </Form.Item>
               </Flex>
             </Form.Item>
@@ -180,7 +222,11 @@ export const SeedDrawerForm = (props: Props) => {
               <Select options={gtTestKitColorOptions} />
             </Form.Item>
 
-            <Flex align="center" justify="space-between" style={{ paddingTop: 16 }}>
+            <Flex
+              align="center"
+              justify="space-between"
+              style={{ paddingTop: 16 }}
+            >
               <Button onClick={onDrawerClose}>Cancel</Button>
               <SaveButton {...saveButtonProps} htmlType="submit" type="primary">
                 Save

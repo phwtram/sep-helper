@@ -114,8 +114,8 @@ export interface IItem {
 }
 
 export interface ISeed {
-  SeedID: number;
-  SeedName: string;
+  id: number;
+  name: string;
   Description: string;
   IsAvailable: SeedAvailability;
   MinTemp: number;

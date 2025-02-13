@@ -36,7 +36,7 @@ const FertilizerStatusTag = ({ status }: { status: FertilizerStatus }) => {
     InStock: "success",
     OutStock: "error",
   };
-  
+
   return <Tag color={colorMap[status]}>{status}</Tag>;
 };
 
@@ -46,7 +46,7 @@ const FertilizerTypeTag = ({ type }: { type: FertilizerType }) => {
     Chemical: "orange",
     Mixed: "blue",
   };
-  
+
   return <Tag color={colorMap[type]}>{type}</Tag>;
 };
 
@@ -135,7 +135,9 @@ export const FertilizerDrawerShow = (props: Props) => {
             },
             {
               label: (
-                <Typography.Text type="secondary">Available Quantity</Typography.Text>
+                <Typography.Text type="secondary">
+                  Available Quantity
+                </Typography.Text>
               ),
               value: (
                 <Typography.Text>
@@ -145,7 +147,9 @@ export const FertilizerDrawerShow = (props: Props) => {
             },
             {
               label: (
-                <Typography.Text type="secondary">Total Quantity</Typography.Text>
+                <Typography.Text type="secondary">
+                  Total Quantity
+                </Typography.Text>
               ),
               value: (
                 <Typography.Text>
