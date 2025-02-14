@@ -60,9 +60,6 @@ export const SeedDrawerShow = (props: Props) => {
     resource: "seed",
     id: props?.id,
   });
-  if (queryResult?.error) {
-    console.error("Error fetching seed:", queryResult?.error);
-  }
 
   const seed = queryResult.data?.data;
 

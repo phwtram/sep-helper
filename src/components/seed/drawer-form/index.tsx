@@ -37,7 +37,7 @@ export const SeedDrawerForm = (props: Props) => {
 
   const { drawerProps, formProps, close, saveButtonProps, formLoading } =
     useDrawerForm<ISeed>({
-      resource: "seeds",
+      resource: "seed",
       id: props?.id,
       action: props.action,
       redirect: false,

@@ -166,7 +166,7 @@ export const ItemDrawerShow = (props: Props) => {
 
             return go({
               to: `${editUrl("item", item?.id?.toString() || "")}`,
-              query: { to: "/item" },
+              query: { to: "/items" },
               options: { keepQuery: true },
               type: "replace",
             });
