@@ -10,6 +10,7 @@ import { getValueFromEvent } from "@refinedev/antd";
 import {
   Form,
   Input,
+  InputNumber,
   Select,
   Upload,
   Grid,
@@ -23,7 +24,6 @@ import { Drawer } from "../../drawer";
 import { UploadOutlined } from "@ant-design/icons";
 import { useStyles } from "./styled";
 import { IItem } from "@/interfaces";
-import { UploadFile } from "antd";
 
 type Props = {
   id?: BaseKey;
@@ -54,6 +54,7 @@ export const ItemDrawerForm = (props: Props) => {
 
   const onDrawerClose = () => {
     close();
+
     if (props?.onClose) {
       props.onClose();
       return;
@@ -67,17 +68,6 @@ export const ItemDrawerForm = (props: Props) => {
     });
   };
 
-  const normalizeImage = (image: any) => {
-    if (!image) return [];
-    if (Array.isArray(image)) return image;
-    return [{ url: image }];
-  };
-
-  const initialValues = {
-    ...formProps.initialValues,
-    image: normalizeImage(formProps.initialValues?.image),
-  };
-
   const image = Form.useWatch("image", formProps.form);
   console.log("Selected image:", image);
   const title = props.action === "edit" ? "Edit Item" : "Add Item";
@@ -87,6 +77,12 @@ export const ItemDrawerForm = (props: Props) => {
     { label: "Harvestive", value: "Harvestive" },
     { label: "Packaging", value: "Packaging" },
     { label: "Inspecting", value: "Inspecting" },
+  ];
+
+  const unitOptions = [
+    { label: "Kg", value: "Kg" },
+    { label: "Tấn", value: "Ton" },
+    { label: "Lít", value: "Litre" },
   ];
 
   const statusOptions = [
@@ -105,19 +101,11 @@ export const ItemDrawerForm = (props: Props) => {
       onClose={onDrawerClose}
     >
       <Spin spinning={formLoading}>
-        <Form {...formProps} initialValues={initialValues} layout="vertical">
+        <Form {...formProps} layout="vertical">
           <Form.Item
             name="image"
             valuePropName="fileList"
-            getValueFromEvent={(e) => {
-              if (!e || !e.fileList) return [];
-              return e.fileList.map((file: UploadFile) => ({
-                url: file.response?.url || file.url,
-                name: file.name,
-                uid: file.uid,
-                originFileObj: file.originFileObj,
-              }));
-            }}
+            getValueFromEvent={getValueFromEvent}
             style={{ margin: 0 }}
             rules={[{ required: true }]}
           >
@@ -127,7 +115,7 @@ export const ItemDrawerForm = (props: Props) => {
               maxCount={1}
               accept=".png,.jpg,.jpeg"
               className={styles.uploadDragger}
-              showUploadList={true}
+              showUploadList={false}
             >
               <Flex
                 vertical
@@ -140,16 +128,12 @@ export const ItemDrawerForm = (props: Props) => {
                   style={{
                     aspectRatio: 1,
                     objectFit: "contain",
-                    width: image?.length ? "100%" : "48px",
-                    height: image?.length ? "100%" : "48px",
-                    marginTop: image?.length ? undefined : "auto",
-                    transform: image?.length ? undefined : "translateY(50%)",
+                    width: image ? "100%" : "48px",
+                    height: image ? "100%" : "48px",
+                    marginTop: image ? undefined : "auto",
+                    transform: image ? undefined : "translateY(50%)",
                   }}
-                  src={
-                    image?.length > 0
-                      ? image[0]?.url || "/images/item-default-img.png"
-                      : "/images/item-default-img.png"
-                  }
+                  src={image || "/images/item-default-img.png"}
                   alt="Item Image"
                 />
                 <Button
@@ -158,7 +142,7 @@ export const ItemDrawerForm = (props: Props) => {
                     marginTop: "auto",
                     marginBottom: "16px",
                     backgroundColor: theme.colorBgContainer,
-                    ...(image?.length > 0 && {
+                    ...(!!image && {
                       position: "absolute",
                       bottom: 0,
                     }),
@@ -208,12 +192,7 @@ export const ItemDrawerForm = (props: Props) => {
               style={{ padding: "16px 16px 0px 16px" }}
             >
               <Button onClick={onDrawerClose}>Cancel</Button>
-              <SaveButton
-                {...saveButtonProps}
-                htmlType="submit"
-                type="primary"
-                icon={null}
-              >
+              <SaveButton {...saveButtonProps} htmlType="submit" type="primary" icon={null}>
                 Save
               </SaveButton>
             </Flex>

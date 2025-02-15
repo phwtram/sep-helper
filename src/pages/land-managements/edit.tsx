@@ -1,5 +1,6 @@
-import { AntdInferencer } from "@refinedev/inferencer/antd";
+import { YieldDrawerForm } from "@/components/yield";
 
-export const LandManagementEdit = () => {
-    return <AntdInferencer />;
+
+export const YieldEdit = () => {
+    return <YieldDrawerForm action="edit" />;
 };

@@ -8,7 +8,6 @@ import {
   useTranslate,
 } from "@refinedev/core";
 import {
-  Avatar,
   Button,
   Divider,
   Flex,
@@ -22,7 +21,7 @@ import { useSearchParams } from "react-router";
 import { Drawer } from "../../drawer";
 import { DeleteButton } from "@refinedev/antd";
 import { EditOutlined } from "@ant-design/icons";
-import { IItem, ItemStatus, ItemType } from "@/interfaces";
+import { IYield, YieldType, YieldAvailability, YieldSize } from "@/interfaces";
 
 type Props = {
   id?: BaseKey;
@@ -30,28 +29,7 @@ type Props = {
   onEdit?: () => void;
 };
 
-const ItemStatusTag = ({ status }: { status: ItemStatus }) => {
-  const colorMap: Record<ItemStatus, string> = {
-    UnActived: "default",
-    InStock: "success",
-    OutStock: "error",
-  };
-  
-  return <Tag color={colorMap[status]}>{status}</Tag>;
-};
-
-const ItemTypeTag = ({ type }: { type: ItemType }) => {
-  const colorMap: Record<ItemType, string> = {
-    Productive: "blue",
-    Harvestive: "green",
-    Packaging: "orange",
-    Inspecting: "purple",
-  };
-  
-  return <Tag color={colorMap[type]}>{type}</Tag>;
-};
-
-export const ItemDrawerShow = (props: Props) => {
+export const YieldDrawerShow = (props: Props) => {
   const getToPath = useGetToPath();
   const [searchParams] = useSearchParams();
   const go = useGo();
@@ -60,11 +38,12 @@ export const ItemDrawerShow = (props: Props) => {
   const { token } = theme.useToken();
   const breakpoint = Grid.useBreakpoint();
 
-  const { query: queryResult } = useShow<IItem, HttpError>({
-    resource: "item",
+  const { query: queryResult } = useShow<IYield, HttpError>({
+    resource: "yield",
     id: props?.id,
   });
-  const item = queryResult.data?.data;
+
+  const yieldData = queryResult.data?.data;
 
   const handleDrawerClose = () => {
     if (props?.onClose) {
@@ -87,56 +66,57 @@ export const ItemDrawerShow = (props: Props) => {
       zIndex={1001}
       onClose={handleDrawerClose}
     >
-      <Flex vertical align="center" justify="center">
-        <Avatar
-          shape="square"
-          style={{
-            aspectRatio: 1,
-            objectFit: "contain",
-            width: "240px",
-            height: "240px",
-            margin: "16px auto",
-            borderRadius: "8px",
-          }}
-          src={item?.image}
-          alt={item?.name}
-        />
-      </Flex>
-      <Flex
-        vertical
-        style={{
-          backgroundColor: token.colorBgContainer,
-        }}
-      >
-        <Flex
-          vertical
-          style={{
-            padding: "16px",
-          }}
-        >
-          <Typography.Title level={5}>{item?.name}</Typography.Title>
+      <Flex vertical style={{ backgroundColor: token.colorBgContainer }}>
+        <Flex vertical style={{ padding: "16px" }}>
+          <Typography.Title level={5}>{yieldData?.name}</Typography.Title>
           <Typography.Paragraph type="secondary">
-            {item?.description}
+            {yieldData?.description}
           </Typography.Paragraph>
         </Flex>
+
         <Divider style={{ margin: 0, padding: 0 }} />
+
         <List
           dataSource={[
             {
-              label: <Typography.Text type="secondary">Status</Typography.Text>,
-              value: item?.status && <ItemStatusTag status={item.status} />,
+              label: (
+                <Typography.Text type="secondary">Area Unit</Typography.Text>
+              ),
+              value: yieldData?.areaUnit || "-",
             },
             {
-              label: <Typography.Text type="secondary">Type</Typography.Text>,
-              value: item?.type && <ItemTypeTag type={item.type} />,
+              label: (
+                <Typography.Text type="secondary">Area (sq. meters)</Typography.Text>
+              ),
+              value: yieldData?.area || "-",
+            },
+            {
+              label: (
+                <Typography.Text type="secondary">Type</Typography.Text>
+              ),
+              value: yieldData?.type || "-",
+            },
+            {
+              label: (
+                <Typography.Text type="secondary">Availability</Typography.Text>
+              ),
+              value: (
+                <Tag color={yieldData?.isAvailable === "Available" ? "green" : "red"}>
+                  {yieldData?.isAvailable || "-"}
+                </Tag>
+              ),
+            },
+            {
+              label: (
+                <Typography.Text type="secondary">Size</Typography.Text>
+              ),
+              value: yieldData?.size || "-",
             },
           ]}
           renderItem={(data) => (
             <List.Item>
               <List.Item.Meta
-                style={{
-                  padding: "0 16px",
-                }}
+                style={{ padding: "0 16px" }}
                 avatar={data.label}
                 title={data.value}
               />
@@ -147,14 +127,12 @@ export const ItemDrawerShow = (props: Props) => {
       <Flex
         align="center"
         justify="space-between"
-        style={{
-          padding: "16px 16px 16px 0",
-        }}
+        style={{ padding: "16px 16px 16px 0" }}
       >
         <DeleteButton
           type="text"
-          recordItemId={item?.id}
-          resource="item"
+          recordItemId={yieldData?.id}
+          resource="yield"
           onSuccess={handleDrawerClose}
         />
         <Button
@@ -163,10 +141,9 @@ export const ItemDrawerShow = (props: Props) => {
             if (props?.onEdit) {
               return props.onEdit();
             }
-
             return go({
-              to: `${editUrl("item", item?.id?.toString() || "")}`,
-              query: { to: "/item" },
+              to: `${editUrl("yield", yieldData?.id?.toString() || "")}`,
+              query: { to: "/yields" },
               options: { keepQuery: true },
               type: "replace",
             });

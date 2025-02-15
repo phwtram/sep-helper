@@ -59,6 +59,7 @@ import {
 } from "./pages/fertilizers";
 import { ItemCreate, ItemEdit, ItemsList, ItemsShow } from "./pages/item";
 import { SeedCreate, SeedEdit, SeedsList, SeedsShow } from "./pages/seed";
+import { YieldCreate, YieldEdit, YieldsList, YieldsShow } from "./pages/land-managements";
 
 interface TitleHandlerOptions {
   resource?: IResourceItem;
@@ -143,13 +144,13 @@ const App: React.FC = () => {
                 },
               },
               {
-                name: "land-management",
-                list: "/land-management",
-                create: "/land-management/create",
-                edit: "/land-management/edit/:id",
-                show: "/land-management/show/:id",
+                name: "yield",
+                list: "/yield",
+                create: "/yield/new",
+                edit: "/yield/edit/:id",
+                show: "/yield/:id",
                 meta: {
-                  label: "Land Management",
+                  label: "Yield Management",
                   icon: <EnvironmentOutlined />,
                 },
               },
@@ -312,6 +313,12 @@ const App: React.FC = () => {
                   <Route path=":id/edit" element={<FarmerManagementEdit />} />
                 </Route>
 
+                <Route path="/yield" element={<YieldsList />}>
+                  <Route path=":id" element={<YieldsShow />} />
+                  <Route path="new" element={<YieldCreate />} />
+                  <Route path=":id/edit" element={<YieldEdit />} />
+                </Route>
+
                 <Route
                   path="/fertilizer"
                   element={
@@ -324,6 +331,7 @@ const App: React.FC = () => {
                   <Route path=":id" element={<FertilizersShow />} />
                   <Route path="edit/:id" element={<FertilizersEdit />} />
                 </Route>
+
 
 
                 <Route
@@ -349,11 +357,10 @@ const App: React.FC = () => {
                   }
                 >
                   <Route path="new" element={<SeedCreate />} />
-                  <Route path=":id" element={<SeedsShow />} />  
+                  <Route path=":id" element={<SeedsShow />} />
                   <Route path="edit/:id" element={<SeedEdit />} />
                 </Route>
               </Route>
-
 
               <Route
                 element={

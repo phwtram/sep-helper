@@ -92,6 +92,9 @@ export type ItemStatus = "UnActived" | "InStock" | "OutStock";
 export type ItemType = "Productive" | "Harvestive" | "Packaging" | "Inspecting";
 export type SeedTestKitColor = "Blue" | "Yellow" | "Red" | "Orange";
 export type SeedAvailability = "Available" | "Unavailable";
+export type YieldType = "Đất thịt" | "Đất mùn" ;
+export type YieldAvailability = "Available" | "Unavailable";
+export type YieldSize = "Small" | "Medium" | "Large";
 export interface IFertilizer {
   id: number;
   name: string;
@@ -133,4 +136,15 @@ export interface ISeed {
   MinBrixPoint: number;
   MaxBrixPoint: number;
   GTTestKitColor: SeedTestKitColor;
+}
+
+export interface IYield {
+  id: number;
+  name: string;
+  areaUnit: string;
+  area: number;
+  type: YieldType;
+  description: string;
+  isAvailable: YieldAvailability;
+  size: YieldSize;
 }

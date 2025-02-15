@@ -40,7 +40,7 @@ export const SeedsListTable: React.FC = () => {
     resource: "seed",
     filters: {
       initial: [
-        { field: "SeedName", operator: "contains", value: "" },
+        { field: "name", operator: "contains", value: "" },
         { field: "Description", operator: "contains", value: "" },
       ],
     },

@@ -1,5 +1,5 @@
-import { AntdInferencer } from "@refinedev/inferencer/antd";
+import { YieldDrawerShow } from "@/components/yield";
 
-export const LandManagementShow = () => {
-    return <AntdInferencer />;
+export const YieldsShow = () => {
+  return <YieldDrawerShow />;
 };
