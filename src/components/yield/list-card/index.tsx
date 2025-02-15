@@ -71,7 +71,7 @@ export const YieldListCard = () => {
                     return;
                   }
 
-                  const targetUrl = `/yields/${yieldID}`;
+                  const targetUrl = `/yield/show/${yieldID}`;
                   console.log("Navigating to:", targetUrl);
 
                   go({
@@ -123,7 +123,10 @@ export const YieldListCard = () => {
 
               <Flex justify="space-between">
                 <Typography.Text type="secondary">
-                  Area: {item.area ?? "-"} {item.areaUnit}
+                  Area: {item.area ?? "-"}
+                </Typography.Text>
+                <Typography.Text type="secondary">
+                  Area Unit: {item.areaUnit ?? "-"}
                 </Typography.Text>
                 <Typography.Text type="secondary">
                   Size: {item.size ?? "-"}

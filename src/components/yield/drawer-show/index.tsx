@@ -142,8 +142,8 @@ export const YieldDrawerShow = (props: Props) => {
               return props.onEdit();
             }
             return go({
-              to: `${editUrl("yield", yieldData?.id?.toString() || "")}`,
-              query: { to: "/yields" },
+              to: `/yield/edit/${yieldData?.id?.toString() || ""}`,
+              query: { to: "/yield" },
               options: { keepQuery: true },
               type: "replace",
             });

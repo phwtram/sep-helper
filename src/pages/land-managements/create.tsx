@@ -4,6 +4,7 @@ import { useGetToPath, useGo } from "@refinedev/core";
 import { useSearchParams } from "react-router";
 
 export const YieldCreate = () => {
+  console.log("✅ YieldCreate component has been rendered!");
       const getToPath = useGetToPath();
   const [searchParams] = useSearchParams();
   const go = useGo();

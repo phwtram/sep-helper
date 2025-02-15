@@ -89,7 +89,13 @@ export const YieldDrawerForm = (props: Props) => {
               className={styles.formItem}
               rules={[{ required: true }]}
             >
-              <Input />
+              <Select
+                options={[
+                  { label: "Hectare", value: "hectare" },
+                  { label: "Acre", value: "acre" },
+                  { label: "Square Meter", value: "square meter" },
+                ]}
+              />
             </Form.Item>
 
             <Form.Item

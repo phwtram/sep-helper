@@ -146,9 +146,9 @@ const App: React.FC = () => {
               {
                 name: "yield",
                 list: "/yield",
-                create: "/yield/new",
+                create: "/yield/create",
                 edit: "/yield/edit/:id",
-                show: "/yield/:id",
+                show: "/yield/show/:id",
                 meta: {
                   label: "Yield Management",
                   icon: <EnvironmentOutlined />,
@@ -313,12 +313,11 @@ const App: React.FC = () => {
                   <Route path=":id/edit" element={<FarmerManagementEdit />} />
                 </Route>
 
-                <Route path="/yield" element={<YieldsList />}>
-                  <Route path=":id" element={<YieldsShow />} />
-                  <Route path="new" element={<YieldCreate />} />
-                  <Route path=":id/edit" element={<YieldEdit />} />
+                <Route path="/yield/*" element={<YieldsList />}>
+                  <Route path="create" element={<YieldCreate />} />
+                  <Route path="edit/:id" element={<YieldEdit />} />
+                  <Route path="show/:id" element={<YieldsShow />} />
                 </Route>
-
                 <Route
                   path="/fertilizer"
                   element={

@@ -5,7 +5,8 @@ import { CreateButton, List } from "@refinedev/antd";
 import { useGo, useNavigation, useTranslate } from "@refinedev/core";
 import { Segmented } from "antd";
 import { type PropsWithChildren, useState } from "react";
-import { useLocation } from "react-router";
+import { Outlet, useLocation } from "react-router";
+
 
 type View = "table" | "card";
 
@@ -57,8 +58,9 @@ export const YieldsList = ({ children }: PropsWithChildren) => {
           key="create"
           size="large"
           onClick={() => {
+            console.log("Navigating to:", "/yield/create"); 
             return go({
-              to: `${createUrl("yield")}`,
+              to: "/yield/create", 
               query: {
                 to: pathname,
               },
@@ -68,6 +70,8 @@ export const YieldsList = ({ children }: PropsWithChildren) => {
               type: "replace",
             });
           }}
+
+
         >
           Add New Yield
         </CreateButton>,
@@ -76,6 +80,7 @@ export const YieldsList = ({ children }: PropsWithChildren) => {
       {view === "table" && <YieldListTable />}
       {view === "card" && <YieldListCard />}
       {children}
+      <Outlet />
     </List>
   );
 };

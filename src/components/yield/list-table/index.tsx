@@ -1,6 +1,5 @@
 import {
   type HttpError,
-  getDefaultFilter,
   useGo,
   useNavigation,
   useTranslate,
@@ -37,11 +36,20 @@ export const YieldListTable: React.FC = () => {
       ],
     },
   });
-  console.log("Table data:", tableProps?.dataSource);
+
+  // Chuyển đổi dữ liệu API về đúng định dạng interface IYield
+  const normalizedData = tableProps?.dataSource?.map((item) => ({
+    ...item,
+    areaUnit: item.areaUnit ?? item.areaUnit ?? "-",
+    area: item.area ?? item.area ?? "-",
+  })) || [];
+
+  console.log("Normalized Data:", normalizedData);
 
   return (
     <Table
       {...tableProps}
+      dataSource={normalizedData}
       rowKey={(record) => record.id?.toString() || Math.random().toString()}
       scroll={{ x: true }}
       pagination={{
@@ -103,15 +111,36 @@ export const YieldListTable: React.FC = () => {
         )}
       />
 
-      {/* ✅ Area */}
       <Table.Column
         title="Area"
         key="area"
-        width={180}
-        render={(_, record: IYield) => (
-          <Typography.Text>
-            {record.area} {record.areaUnit}
-          </Typography.Text>
+        width={120}
+        render={(_, record) => {
+          console.log("✅ Area Data Record:", record);
+          return <Typography.Text>{record.area ?? "-"}</Typography.Text>;
+        }}
+      />
+
+      <Table.Column
+        title="Area Unit"
+        key="areaUnit"
+        width={120}
+        render={(_, record) => {
+          console.log("✅ Area Unit Data Record:", record);
+          return <Typography.Text>{record.areaUnit ?? "-"}</Typography.Text>;
+        }}
+      />
+
+
+      {/* ✅ Type */}
+      <Table.Column
+        title="Type"
+        dataIndex="type"
+        key="type"
+        width={120}
+        align="center"
+        render={(value: YieldType) => (
+          <Tag color="purple">{value || "-"}</Tag>
         )}
       />
 
@@ -122,7 +151,7 @@ export const YieldListTable: React.FC = () => {
         key="size"
         width={120}
         align="center"
-        render={(value) => (
+        render={(value: YieldSize) => (
           <Tag color="blue">{value || "-"}</Tag>
         )}
       />
@@ -138,7 +167,7 @@ export const YieldListTable: React.FC = () => {
             icon={<EyeOutlined />}
             onClick={() => {
               go({
-                to: `${showUrl("yield", record.id)}`,
+                to: `/yield/show/${record.id}`,
                 query: {
                   to: pathname,
                 },
