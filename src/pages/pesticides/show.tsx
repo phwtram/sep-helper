@@ -1,5 +1,5 @@
-import { AntdInferencer } from "@refinedev/inferencer/antd";
+import { PesticideDrawerShow } from "@/components/pesticide";
 
 export const PesticideShow = () => {
-    return <AntdInferencer />;
+    return <PesticideDrawerShow />;
 };

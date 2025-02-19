@@ -1,5 +1,5 @@
-import { AntdInferencer } from "@refinedev/inferencer/antd";
+import { PesticideDrawerForm } from "@/components/pesticide";
 
-export const PesticideEdit = () => {
-    return <AntdInferencer />;
+export const PesticidesEdit = () => {
+  return <PesticideDrawerForm action="edit" />;
 };

@@ -1,7 +1,8 @@
 import { AuthPage as AntdAuthPage, type AuthProps } from "@refinedev/antd";
-import { Flex } from "antd";
-import { Link } from "react-router";
+import { Flex, notification } from "antd";
+import { Link, useNavigate } from "react-router-dom";
 import { BFarmLogoIcon, BFarmLogoText } from "../../components";
+import { loginUser } from "../../services/authService";
 
 const authWrapperProps = {
   style: {
@@ -50,12 +51,37 @@ const renderAuthContent = (content: React.ReactNode) => {
 };
 
 export const AuthPage: React.FC<AuthProps> = ({ type, formProps }) => {
+  const navigate = useNavigate(); // Điều hướng sau khi login
+
+  const handleLogin = async (values: { email: string; password: string }) => {
+    try {
+      const data = await loginUser(values.email, values.password);
+      localStorage.setItem("token", data.token); // Lưu token vào localStorage
+
+      notification.success({
+        message: "Login Successful",
+        description: "You have logged in successfully!",
+      });
+
+      navigate("/dashboard"); // Chuyển đến trang Dashboard sau khi đăng nhập
+    } catch (error) {
+      const err = error as Error; // 🔹 Ép kiểu `error` thành `Error`
+      notification.error({
+        message: "Login Failed",
+        description: err.message || "Invalid email or password",
+      });
+    }
+  };
+
   return (
     <AntdAuthPage
       type={type}
       wrapperProps={authWrapperProps}
       renderContent={renderAuthContent}
-      formProps={formProps}
+      formProps={{
+        ...formProps,
+        onFinish: handleLogin, // Gọi API khi nhấn nút Login
+      }}
     />
   );
 };

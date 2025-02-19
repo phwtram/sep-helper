@@ -1,21 +1,60 @@
-import type { AuthProvider } from "@refinedev/core";
-import { notification } from "antd";
-import { loginUser, registerUser, logoutUser } from "@/services/authService";
-export const authProvider = {
-  login: async ({ email, password }: { email: string; password: string }) => {
+const API_URL = "https://api.outfit4rent.online/api";
+
+// 🟢 Hàm đăng nhập
+export const loginUser = async (email: string, password: string) => {
     if (!email || !password) {
-      return {
-        success: false,
-        error: {
-          name: "Validation Error",
-          message: "Email and password are required.",
-        },
-      };
+      throw new Error("Email and password are required.");
+    }
+  
+    try {
+      const response = await fetch(`${API_URL}/auth/login`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Incorrect email or password.");
+      }
+  
+      return response.json();
+    } catch (error) {
+      throw new Error("Incorrect email or password.");
+    }
+  };
+  
+
+// 🟢 Hàm đăng ký
+export const registerUser = async (email: string, password: string) => {
+  try {
+    const response = await fetch(`${API_URL}/auth/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || "Registration failed.");
     }
 
+    return response.json();
+  } catch (error) {
+    throw new Error("Registration failed. Please try again.");
+  }
+};
+
+// 🟢 Hàm đăng xuất
+export const logoutUser = () => {
+  localStorage.removeItem("token");
+};
+
+export const authProvider = {
+  login: async ({ email, password }: { email: string; password: string }) => {
     try {
       const response = await loginUser(email, password);
-
+      
       if (response.token) {
         localStorage.setItem("token", response.token);
         return {
@@ -43,19 +82,9 @@ export const authProvider = {
   },
 
   register: async ({ email, password }: { email: string; password: string }) => {
-    if (!email || !password) {
-      return {
-        success: false,
-        error: {
-          name: "Validation Error",
-          message: "Email and password are required.",
-        },
-      };
-    }
-
     try {
       const response = await registerUser(email, password);
-
+      
       if (response.token) {
         localStorage.setItem("token", response.token);
         return {
@@ -82,7 +111,7 @@ export const authProvider = {
     }
   },
 
-  logout: async (p0: {}) => {
+  logout: async () => {
     logoutUser();
     return {
       success: true,
@@ -92,7 +121,7 @@ export const authProvider = {
 
   check: async () => {
     const token = localStorage.getItem("token");
-
+    
     if (!token) {
       return {
         authenticated: false,
@@ -105,6 +134,7 @@ export const authProvider = {
       };
     }
 
+    // Token exists, consider user authenticated
     return {
       authenticated: true,
     };
@@ -113,7 +143,7 @@ export const authProvider = {
   getPermissions: async () => {
     const token = localStorage.getItem("token");
     if (!token) return null;
-
+    
     return null;
   },
 
@@ -121,7 +151,12 @@ export const authProvider = {
     const token = localStorage.getItem("token");
     if (!token) return null;
 
-    return null;
+    try {
+      // You can implement getUserProfile here if needed
+      return null;
+    } catch (error) {
+      return null;
+    }
   },
 
   onError: async (error: any) => {

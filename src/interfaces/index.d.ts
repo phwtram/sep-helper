@@ -95,6 +95,10 @@ export type SeedAvailability = "Available" | "Unavailable";
 export type YieldType = "Đất thịt" | "Đất mùn" ;
 export type YieldAvailability = "Available" | "Unavailable";
 export type YieldSize = "Small" | "Medium" | "Large";
+export type PesticideStatus = "UnActived" | "InStock" | "OutStock";
+export type PesticideType = "Insecticide" | "Fungicide" | "Herbicide"| "Other";
+
+
 export interface IFertilizer {
   id: number;
   name: string;
@@ -147,4 +151,16 @@ export interface IYield {
   description: string;
   isAvailable: YieldAvailability;
   size: YieldSize;
+}
+
+export interface IPesticide {
+  id: number;
+  name: string;
+  description: string;
+  unit: string;
+  image: string;
+  available_quantity: number;
+  total_quantity: number;
+  status: PesticideStatus;
+  type: PesticideType;
 }
