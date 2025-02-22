@@ -55,7 +55,8 @@
     "react-router": "latest",
     "react-router-dom": "^7.2.0",
     "tslib": "latest",
-    "usehooks-ts": "latest"
+    "usehooks-ts": "latest",
+    "yup": "^1.6.1"
   },
   "devDependencies": {
     "@commitlint/cli": "latest",

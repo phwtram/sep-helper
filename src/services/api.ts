@@ -1,4 +1,4 @@
-export const API_URL = "https://api.outfit4rent.online/api/auth/login"; // Cập nhật URL API của bạn
+export const API_URL = "https://api.outfit4rent.online/api/auth/login"; 
 
 export const fetchAPI = async (endpoint: string, method = "GET", body?: any, token?: string) => {
   const headers: HeadersInit = { "Content-Type": "application/json" };

@@ -396,8 +396,9 @@ const App: React.FC = () => {
                       type="login"
                       formProps={{
                         initialValues: {
-                          email: "FarmOwner@gmail.com",
-                          password: "123456",
+                          email: "",
+                          password: "",
+                          
                         },
                       }}
                     />
