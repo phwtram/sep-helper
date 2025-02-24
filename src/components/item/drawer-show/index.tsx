@@ -36,7 +36,7 @@ const ItemStatusTag = ({ status }: { status: ItemStatus }) => {
     InStock: "success",
     OutStock: "error",
   };
-  
+
   return <Tag color={colorMap[status]}>{status}</Tag>;
 };
 
@@ -47,7 +47,7 @@ const ItemTypeTag = ({ type }: { type: ItemType }) => {
     Packaging: "orange",
     Inspecting: "purple",
   };
-  
+
   return <Tag color={colorMap[type]}>{type}</Tag>;
 };
 
@@ -166,7 +166,7 @@ export const ItemDrawerShow = (props: Props) => {
 
             return go({
               to: `${editUrl("item", item?.id?.toString() || "")}`,
-              query: { to: "/item" },
+              query: { to: "/items" },
               options: { keepQuery: true },
               type: "replace",
             });
