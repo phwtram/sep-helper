@@ -97,6 +97,7 @@ export type YieldAvailability = "Available" | "Unavailable";
 export type YieldSize = "Small" | "Medium" | "Large";
 export type PesticideStatus = "UnActived" | "InStock" | "OutStock";
 export type PesticideType = "Insecticide" | "Fungicide" | "Herbicide"| "Other";
+export type InspectorAvailability = "Available" | "Unavailable";
 
 
 export interface IFertilizer {
@@ -163,4 +164,14 @@ export interface IPesticide {
   total_quantity: number;
   status: PesticideStatus;
   type: PesticideType;
+}
+
+export interface IInspector {
+  id: number
+  accountID: string;
+  address: string;
+  name: string;
+  imageUrl: string;
+  description: string;
+  isAvailable: InspectorAvailability;
 }
