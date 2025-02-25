@@ -5,7 +5,7 @@ import { CreateButton, List } from "@refinedev/antd";
 import { useGo, useNavigation, useTranslate } from "@refinedev/core";
 import { Segmented } from "antd";
 import { type PropsWithChildren, useState } from "react";
-import { useLocation } from "react-router";
+import { Outlet, useLocation } from "react-router";
 
 type View = "table" | "card";
 
@@ -16,7 +16,7 @@ export const InspectorsList = ({ children }: PropsWithChildren) => {
   const { createUrl } = useNavigation();
 
   const [view, setView] = useState<View>(
-    (localStorage.getItem("inspector-view") as View) || "table",
+    (localStorage.getItem("inspector-view") as View) || "table"
   );
 
   const handleViewChange = (value: View) => {
@@ -57,8 +57,9 @@ export const InspectorsList = ({ children }: PropsWithChildren) => {
           key="create"
           size="large"
           onClick={() => {
+            console.log("Navigating to:", "/inspector/create");
             return go({
-              to: `${createUrl("inspector")}`,
+              to: "/inspector/create",
               query: {
                 to: pathname,
               },
@@ -76,6 +77,7 @@ export const InspectorsList = ({ children }: PropsWithChildren) => {
       {view === "table" && <InspectorListTable />}
       {view === "card" && <InspectorListCard />}
       {children}
+      <Outlet />
     </List>
   );
 };

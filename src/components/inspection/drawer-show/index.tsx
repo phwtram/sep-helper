@@ -30,7 +30,11 @@ type Props = {
   onEdit?: () => void;
 };
 
-const InspectorAvailabilityTag = ({ isAvailable }: { isAvailable: InspectorAvailability }) => {
+const InspectorAvailabilityTag = ({
+  isAvailable,
+}: {
+  isAvailable: InspectorAvailability;
+}) => {
   const colorMap: Record<InspectorAvailability, string> = {
     Available: "green",
     Unavailable: "red",
@@ -68,8 +72,7 @@ export const InspectorDrawerShow = (props: Props) => {
       type: "replace",
     });
   };
-
-  
+  console.log("Drawer Opened");
   return (
     <Drawer
       open={true}
@@ -113,15 +116,21 @@ export const InspectorDrawerShow = (props: Props) => {
         <List
           dataSource={[
             {
-              label: <Typography.Text type="secondary">Account ID</Typography.Text>,
+              label: (
+                <Typography.Text type="secondary">Account ID</Typography.Text>
+              ),
               value: inspector?.accountID,
             },
             {
-              label: <Typography.Text type="secondary">Address</Typography.Text>,
+              label: (
+                <Typography.Text type="secondary">Address</Typography.Text>
+              ),
               value: inspector?.address,
             },
             {
-              label: <Typography.Text type="secondary">Availability</Typography.Text>,
+              label: (
+                <Typography.Text type="secondary">Availability</Typography.Text>
+              ),
               value: inspector?.isAvailable && (
                 <InspectorAvailabilityTag isAvailable={inspector.isAvailable} />
               ),
@@ -161,7 +170,7 @@ export const InspectorDrawerShow = (props: Props) => {
             }
 
             return go({
-              to: `${editUrl("inspector", inspector?.id?.toString() || "")}`,
+              to: `/inspector/edit/${inspector?.id?.toString() || ""}`,
               query: { to: "/inspector" },
               options: { keepQuery: true },
               type: "replace",

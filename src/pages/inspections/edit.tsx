@@ -1,6 +1,5 @@
 import { InspectorDrawerForm } from "@/components/inspection";
 
-
-export const inspectorEdit = () => {
-    return <InspectorDrawerForm action="edit" />;
+export const InspectorEdit = () => {
+  return <InspectorDrawerForm action="edit" />;
 };
