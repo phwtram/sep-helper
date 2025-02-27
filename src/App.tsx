@@ -59,25 +59,10 @@ import {
 } from "./pages/fertilizers";
 import { ItemCreate, ItemEdit, ItemsList, ItemsShow } from "./pages/item";
 import { SeedCreate, SeedEdit, SeedsList, SeedsShow } from "./pages/seed";
-import {
-  YieldCreate,
-  YieldEdit,
-  YieldsList,
-  YieldsShow,
-} from "./pages/land-managements";
-import {
-  PesticidesCreate,
-  PesticideShow,
-  PesticidesList,
-  PesticidesEdit,
-} from "./pages/pesticides";
+import { YieldCreate, YieldEdit, YieldsList, YieldsShow } from "./pages/land-managements";
+import { PesticidesCreate, PesticideShow, PesticidesList, PesticidesEdit } from "./pages/pesticides";
 import Logout from "./pages/auth/Logout";
-import {
-  InspectorCreate,
-  InspectorEdit,
-  InspectorsList,
-  InspectorsShow,
-} from "./pages/inspections";
+import { InspectorCreate, InspectorsList, InspectorsShow } from "./pages/inspections";
 
 interface TitleHandlerOptions {
   resource?: IResourceItem;
@@ -153,8 +138,8 @@ const App: React.FC = () => {
               {
                 name: "inspector",
                 list: "/inspector",
-                create: "/inspector/create",
-                edit: "/inspector/edit/:id",
+                // create: "/inspector/create",
+                // edit: "/inspector/edit/:id",
                 show: "/inspector/show/:id",
                 meta: {
                   label: "Inspection",
@@ -169,6 +154,17 @@ const App: React.FC = () => {
                 show: "/yield/show/:id",
                 meta: {
                   label: "Yield Management",
+                  icon: <EnvironmentOutlined />,
+                },
+              },
+              {
+                name: "seed",
+                list: "/seeds",
+                create: "/seeds/new",
+                edit: "/seeds/edit/:id",
+                show: "/seeds/:id",
+                meta: {
+                  label: "Seeds",
                   icon: <EnvironmentOutlined />,
                 },
               },
@@ -201,14 +197,6 @@ const App: React.FC = () => {
                 create: "/items/new",
                 edit: "/items/edit/:id",
                 show: "/items/:id",
-                meta: { parent: "material", canDelete: true },
-              },
-              {
-                name: "seed",
-                list: "/seeds",
-                create: "/seeds/new",
-                edit: "/seeds/edit/:id",
-                show: "/seeds/:id",
                 meta: { parent: "material", canDelete: true },
               },
               {
@@ -345,11 +333,13 @@ const App: React.FC = () => {
                   <Route path="show/:id" element={<YieldsShow />} />
                 </Route>
 
-                <Route path="/inspector/*" element={<InspectorsList />}>
-                  <Route path="create" element={<InspectorCreate />} />
-                  <Route path="edit/:id" element={<InspectorEdit />} />
-                  <Route path="show/:id" element={<InspectorsShow />} />
-                </Route>
+         
+                  <Route path="/inspector/*" element={<InspectorsList />}>
+                    {/* <Route path="create" element={<InspectorCreate />} />
+                    <Route path="edit/:id" element={<InspectorCreate />} /> */}
+                    <Route path="show/:id" element={<InspectorsShow />} />
+                  </Route>
+ 
 
                 <Route
                   path="/fertilizer"
@@ -390,6 +380,7 @@ const App: React.FC = () => {
                   <Route path="edit/:id" element={<ItemEdit />} />
                 </Route>
 
+
                 <Route
                   path="/seeds"
                   element={
@@ -420,6 +411,7 @@ const App: React.FC = () => {
                         initialValues: {
                           email: "",
                           password: "",
+
                         },
                       }}
                     />
@@ -470,7 +462,7 @@ const App: React.FC = () => {
           </Refine>
         </RefineKbarProvider>
       </ConfigProvider>
-    </BrowserRouter>
+    </BrowserRouter >
   );
 };
 
