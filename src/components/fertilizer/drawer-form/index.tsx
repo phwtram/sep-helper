@@ -163,7 +163,7 @@ export const FertilizerDrawerForm = (props: Props) => {
                     marginTop: "auto",
                     marginBottom: "16px",
                     backgroundColor: theme.colorBgContainer,
-                    ...(!!image && {
+                    ...(image?.length > 0 && {
                       position: "absolute",
                       bottom: 0,
                     }),
