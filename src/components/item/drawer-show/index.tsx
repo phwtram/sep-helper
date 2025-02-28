@@ -1,180 +1,154 @@
-import {
-  type BaseKey,
-  type HttpError,
-  useGetToPath,
-  useGo,
-  useNavigation,
-  useShow,
-  useTranslate,
-} from "@refinedev/core";
+import { useState, useEffect } from "react";
 import {
   Avatar,
   Button,
   Divider,
   Flex,
-  Grid,
-  List,
   Typography,
   theme,
-  Tag,
+  Spin,
+  Grid,
+  message,
 } from "antd";
-import { useSearchParams } from "react-router";
 import { Drawer } from "../../drawer";
-import { DeleteButton } from "@refinedev/antd";
-import { EditOutlined } from "@ant-design/icons";
-import { IItem, ItemStatus, ItemType } from "@/interfaces";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { axiosClient } from "@/lib/api/config/axios-client";
+import { IItem } from "@/interfaces";
+import { ItemDrawerForm } from "../drawer-form";
 
 type Props = {
-  id?: BaseKey;
+  id?: string;
   onClose?: () => void;
-  onEdit?: () => void;
 };
 
-const ItemStatusTag = ({ status }: { status: ItemStatus }) => {
-  const colorMap: Record<ItemStatus, string> = {
-    UnActived: "default",
-    InStock: "success",
-    OutStock: "error",
-  };
-
-  return <Tag color={colorMap[status]}>{status}</Tag>;
-};
-
-const ItemTypeTag = ({ type }: { type: ItemType }) => {
-  const colorMap: Record<ItemType, string> = {
-    Productive: "blue",
-    Harvestive: "green",
-    Packaging: "orange",
-    Inspecting: "purple",
-  };
-
-  return <Tag color={colorMap[type]}>{type}</Tag>;
-};
-
-export const ItemDrawerShow = (props: Props) => {
-  const getToPath = useGetToPath();
-  const [searchParams] = useSearchParams();
-  const go = useGo();
-  const { editUrl } = useNavigation();
-  const t = useTranslate();
+export const ItemDrawerShow = ({ id, onClose }: Props) => {
   const { token } = theme.useToken();
   const breakpoint = Grid.useBreakpoint();
 
-  const { query: queryResult } = useShow<IItem, HttpError>({
-    resource: "item",
-    id: props?.id,
-  });
-  const item = queryResult.data?.data;
+  const [item, setItem] = useState<IItem | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState<boolean>(false);
 
-  const handleDrawerClose = () => {
-    if (props?.onClose) {
-      props.onClose();
-      return;
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchItem = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axiosClient.get(`/api/items/${id}`);
+        if (response.data.status === 200) {
+          setItem(response.data.data);
+        } else {
+          setError("Không thể tải thông tin sản phẩm.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Có lỗi xảy ra khi tải dữ liệu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchItem();
+  }, [id]);
+
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await axiosClient.delete(`/api/items/${id}`);
+      message.success("Xóa sản phẩm thành công");
+      onClose?.();
+    } catch (err) {
+      console.error(err);
+      message.error("Xóa sản phẩm thất bại");
     }
-
-    go({
-      to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
-      query: { to: undefined },
-      options: { keepQuery: true },
-      type: "replace",
-    });
   };
 
-  return (
-    <Drawer
-      open={true}
-      width={breakpoint.sm ? "378px" : "100%"}
-      zIndex={1001}
-      onClose={handleDrawerClose}
-    >
-      <Flex vertical align="center" justify="center">
-        <Avatar
-          shape="square"
-          style={{
-            aspectRatio: 1,
-            objectFit: "contain",
-            width: "240px",
-            height: "240px",
-            margin: "16px auto",
-            borderRadius: "8px",
-          }}
-          src={item?.image}
-          alt={item?.name}
-        />
-      </Flex>
-      <Flex
-        vertical
-        style={{
-          backgroundColor: token.colorBgContainer,
-        }}
+  if (loading) {
+    return (
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
       >
-        <Flex
-          vertical
-          style={{
-            padding: "16px",
-          }}
-        >
-          <Typography.Title level={5}>{item?.name}</Typography.Title>
-          <Typography.Paragraph type="secondary">
-            {item?.description}
-          </Typography.Paragraph>
+        <Flex justify="center" align="center" style={{ height: "100%" }}>
+          <Spin size="large" />
         </Flex>
-        <Divider style={{ margin: 0, padding: 0 }} />
-        <List
-          dataSource={[
-            {
-              label: <Typography.Text type="secondary">Status</Typography.Text>,
-              value: item?.status && <ItemStatusTag status={item.status} />,
-            },
-            {
-              label: <Typography.Text type="secondary">Type</Typography.Text>,
-              value: item?.type && <ItemTypeTag type={item.type} />,
-            },
-          ]}
-          renderItem={(data) => (
-            <List.Item>
-              <List.Item.Meta
-                style={{
-                  padding: "0 16px",
-                }}
-                avatar={data.label}
-                title={data.value}
-              />
-            </List.Item>
-          )}
-        />
-      </Flex>
-      <Flex
-        align="center"
-        justify="space-between"
-        style={{
-          padding: "16px 16px 16px 0",
-        }}
-      >
-        <DeleteButton
-          type="text"
-          recordItemId={item?.id}
-          resource="item"
-          onSuccess={handleDrawerClose}
-        />
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => {
-            if (props?.onEdit) {
-              return props.onEdit();
-            }
+      </Drawer>
+    );
+  }
 
-            return go({
-              to: `${editUrl("item", item?.id?.toString() || "")}`,
-              query: { to: "/items" },
-              options: { keepQuery: true },
-              type: "replace",
-            });
-          }}
+  if (error) {
+    return (
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Typography.Text type="danger">{error}</Typography.Text>
+      </Drawer>
+    );
+  }
+
+  return (
+    <>
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Flex vertical align="center" justify="center">
+          <Avatar
+            shape="square"
+            style={{
+              aspectRatio: 1,
+              objectFit: "contain",
+              width: "240px",
+              height: "240px",
+              margin: "16px auto",
+              borderRadius: "8px",
+            }}
+            src={item?.image}
+            alt={item?.name}
+          />
+        </Flex>
+        <Flex vertical style={{ backgroundColor: token.colorBgContainer }}>
+          <Flex vertical style={{ padding: "16px" }}>
+            <Typography.Title level={5}>{item?.name}</Typography.Title>
+            <Typography.Paragraph type="secondary">
+              {item?.description}
+            </Typography.Paragraph>
+          </Flex>
+          <Divider style={{ margin: 0, padding: 0 }} />
+        </Flex>
+        <Flex
+          align="center"
+          justify="space-between"
+          style={{ padding: "16px" }}
         >
-          {t("actions.edit")}
-        </Button>
-      </Flex>
-    </Drawer>
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
+          <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+            Edit
+          </Button>
+        </Flex>
+      </Drawer>
+      {editOpen && (
+        <ItemDrawerForm
+          id={id}
+          action="edit"
+          onClose={() => setEditOpen(false)}
+          onMutationSuccess={() => setEditOpen(false)}
+        />
+      )}
+    </>
   );
 };

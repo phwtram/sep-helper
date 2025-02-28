@@ -1,66 +1,43 @@
-import {
-  type HttpError,
-  getDefaultFilter,
-  useGo,
-  useNavigation,
-  useTranslate,
-} from "@refinedev/core";
-import { FilterDropdown, getDefaultSortOrder, useTable } from "@refinedev/antd";
-
-import {
-  Avatar,
-  Button,
-  Input,
-  InputNumber,
-  Select,
-  Table,
-  Tag,
-  Typography,
-  theme,
-} from "antd";
-
-import { EyeOutlined, SearchOutlined } from "@ant-design/icons";
-import { useLocation } from "react-router";
-import { IItem, ItemStatus, ItemType } from "@/interfaces";
+import React, { useEffect, useState } from "react";
+import { Table, Avatar, Tag, Button, Typography, Spin } from "antd";
+import { EyeOutlined } from "@ant-design/icons";
+import { useGo } from "@refinedev/core";
+import { useLocation } from "react-router-dom";
+import { axiosClient } from "@/lib/api/config/axios-client";
 import { PaginationTotal } from "@/components/paginationTotal";
 import { ItemStatusTag } from "../status";
+import { IItem } from "@/interfaces";
+import { ItemDrawerShow } from "../drawer-show";
 
 export const ItemsListTable: React.FC = () => {
-  const { token } = theme.useToken();
-  const t = useTranslate();
   const go = useGo();
   const { pathname } = useLocation();
-  const { showUrl } = useNavigation();
 
-  const { tableProps, sorters, filters } = useTable<IItem, HttpError>({
-    resource: "item",
-    filters: {
-      initial: [
-        {
-          field: "name",
-          operator: "contains",
-          value: "",
-        },
-        {
-          field: "description",
-          operator: "contains",
-          value: "",
-        },
-        {
-          field: "status",
-          operator: "in",
-          value: [],
-        },
-        {
-          field: "type",
-          operator: "in",
-          value: [],
-        },
-      ],
-    },
-  });
+  const [items, setItems] = useState<IItem[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchItems = async () => {
+      try {
+        const response = await axiosClient.get("/api/items");
+        if (response.data.status === 200 && Array.isArray(response.data.data)) {
+          setItems(response.data.data);
+        } else {
+          setError("Không thể tải danh sách sản phẩm.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Có lỗi xảy ra khi tải danh sách sản phẩm.");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getTypeColor = (type: ItemType) => {
+    fetchItems();
+  }, []);
+
+  const getTypeColor = (type: string) => {
     switch (type) {
       case "Productive":
         return "blue";
@@ -75,156 +52,71 @@ export const ItemsListTable: React.FC = () => {
     }
   };
 
+  if (loading) return <Spin size="large" className="flex justify-center" />;
+  if (error) return <Typography.Text type="danger">{error}</Typography.Text>;
+
   return (
-    <Table
-      {...tableProps}
-      rowKey="id"
-      scroll={{ x: true }}
-      pagination={{
-        ...tableProps.pagination,
-        showTotal: (total) => (
-          <PaginationTotal total={total} entityName="items" />
-        ),
-      }}
-    >
-      <Table.Column
-        title="ID"
-        dataIndex="id"
-        key="id"
-        width={80}
-        render={(value) => <Typography.Text>#{value}</Typography.Text>}
-        filterIcon={(filtered) => (
-          <SearchOutlined
-            style={{
-              color: filtered ? token.colorPrimary : undefined,
-            }}
-          />
-        )}
-        defaultFilteredValue={getDefaultFilter("id", filters, "eq")}
-        filterDropdown={(props) => (
-          <FilterDropdown {...props}>
-            <InputNumber
-              addonBefore="#"
-              style={{ width: "100%" }}
-              placeholder="Search ID"
+    <>
+      <Table
+        dataSource={items}
+        rowKey="id"
+        scroll={{ x: true }}
+        pagination={{
+          showTotal: (total) => (
+            <PaginationTotal total={total} entityName="items" />
+          ),
+        }}
+      >
+        <Table.Column title="ID" dataIndex="id" key="id" width={80} />
+        <Table.Column
+          title="Image"
+          dataIndex="image"
+          key="image"
+          render={(image) => <Avatar shape="square" src={image} alt="Item" />}
+        />
+        <Table.Column title="Name" dataIndex="name" key="name" />
+        <Table.Column
+          title="Description"
+          dataIndex="description"
+          key="description"
+          width={300}
+        />
+        <Table.Column
+          title="Status"
+          dataIndex="status"
+          key="status"
+          width={120}
+          render={(value) => <ItemStatusTag value={value} />}
+        />
+        <Table.Column
+          title="Type"
+          dataIndex="type"
+          key="type"
+          width={120}
+          render={(value) => <Tag color={getTypeColor(value)}>{value}</Tag>}
+        />
+        <Table.Column
+          title="Actions"
+          key="actions"
+          fixed="right"
+          align="center"
+          render={(_, record: IItem) => (
+            <Button
+              icon={<EyeOutlined />}
+              onClick={() => {
+                console.log("Opening drawer for ID:", record.id);
+                setSelectedItemId(record.id.toString());
+              }}
             />
-          </FilterDropdown>
-        )}
-      />
-
-      <Table.Column
-        title="Image"
-        dataIndex="image"
-        key="image"
-        render={(image: string) => (
-          <Avatar shape="square" src={image} alt="Item" />
-        )}
-      />
-
-      <Table.Column
-        title="Name"
-        dataIndex="name"
-        key="name"
-        filterIcon={(filtered) => (
-          <SearchOutlined
-            style={{
-              color: filtered ? token.colorPrimary : undefined,
-            }}
-          />
-        )}
-        defaultFilteredValue={getDefaultFilter("name", filters, "contains")}
-        filterDropdown={(props) => (
-          <FilterDropdown {...props}>
-            <Input placeholder="Search name" />
-          </FilterDropdown>
-        )}
-      />
-
-      <Table.Column
-        title="Description"
-        dataIndex="description"
-        key="description"
-        width={300}
-        render={(value) => (
-          <Typography.Paragraph
-            ellipsis={{ rows: 2, tooltip: true }}
-            style={{ marginBottom: 0 }}
-          >
-            {value}
-          </Typography.Paragraph>
-        )}
-      />
-
-      <Table.Column
-        title="Status"
-        dataIndex="status"
-        key="status"
-        width={120}
-        filterDropdown={(props) => (
-          <FilterDropdown {...props}>
-            <Select
-              style={{ width: "200px" }}
-              mode="multiple"
-              placeholder="Filter by status"
-              allowClear
-            >
-              <Select.Option value="UnActived">UnActived</Select.Option>
-              <Select.Option value="InStock">InStock</Select.Option>
-              <Select.Option value="OutStock">OutStock</Select.Option>
-            </Select>
-          </FilterDropdown>
-        )}
-        render={(value) => <ItemStatusTag value={value} />}
-      />
-
-      <Table.Column
-        title="Type"
-        dataIndex="type"
-        key="type"
-        width={120}
-        filterDropdown={(props) => (
-          <FilterDropdown {...props}>
-            <Select
-              style={{ width: "200px" }}
-              mode="multiple"
-              placeholder="Filter by type"
-              allowClear
-            >
-              <Select.Option value="Productive">Productive</Select.Option>
-              <Select.Option value="Harvestive">Harvestive</Select.Option>
-              <Select.Option value="Packaging">Packaging</Select.Option>
-              <Select.Option value="Inspecting">Inspecting</Select.Option>
-            </Select>
-          </FilterDropdown>
-        )}
-        render={(value: ItemType) => (
-          <Tag color={getTypeColor(value)}>{value}</Tag>
-        )}
-      />
-
-      <Table.Column
-        title="Actions"
-        key="actions"
-        fixed="right"
-        align="center"
-        render={(_, record: IItem) => (
-          <Button
-            icon={<EyeOutlined />}
-            onClick={() => {
-              go({
-                to: `${showUrl("item", record.id)}`,
-                query: {
-                  to: pathname,
-                },
-                options: {
-                  keepQuery: true,
-                },
-                type: "replace",
-              });
-            }}
-          />
-        )}
-      />
-    </Table>
+          )}
+        />
+      </Table>
+      {selectedItemId && (
+        <ItemDrawerShow
+          id={selectedItemId}
+          onClose={() => setSelectedItemId(null)}
+        />
+      )}
+    </>
   );
 };
