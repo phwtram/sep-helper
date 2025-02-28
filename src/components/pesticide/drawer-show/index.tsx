@@ -1,208 +1,168 @@
-import {
-  type BaseKey,
-  type HttpError,
-  useGetToPath,
-  useGo,
-  useNavigation,
-  useShow,
-  useTranslate,
-} from "@refinedev/core";
+import { useState, useEffect } from "react";
 import {
   Avatar,
   Button,
   Divider,
   Flex,
-  Grid,
-  List,
   Typography,
   theme,
-  Tag,
+  Spin,
+  Grid,
+  message,
 } from "antd";
-import { useSearchParams } from "react-router";
 import { Drawer } from "../../drawer";
-import { DeleteButton } from "@refinedev/antd";
-import { EditOutlined } from "@ant-design/icons";
-import { PesticideStatus, PesticideType, IPesticide } from "@/interfaces";
+import { EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { axiosClient } from "@/lib/api/config/axios-client"; // Đảm bảo import axiosClient đúng
+import { IPesticide } from "@/interfaces"; // Giả sử đây là interface bạn đã khai báo
+import { PesticideDrawerForm } from "../drawer-form"; // Giả sử bạn có form cho việc chỉnh sửa thuốc trừ sâu
 
 type Props = {
-  id?: BaseKey;
+  id?: string;
   onClose?: () => void;
-  onEdit?: () => void;
 };
 
-const PesticideStatusTag = ({ status }: { status: PesticideStatus }) => {
-  const colorMap = {
-    UnActived: "default",
-    InStock: "success",
-    OutStock: "error",
-  };
-
-  return <Tag color={colorMap[status]}>{status}</Tag>;
-};
-
-const PesticideTypeTag = ({ type }: { type: PesticideType }) => {
-  const colorMap = {
-    Insecticide: "green",
-    Fungicide: "orange",
-    Herbicide: "blue",
-    Other: "purple",
-  };
-
-  return <Tag color={colorMap[type]}>{type}</Tag>;
-};
-
-export const PesticideDrawerShow = (props: Props) => {
-  const getToPath = useGetToPath();
-  const [searchParams] = useSearchParams();
-  const go = useGo();
-  const { editUrl } = useNavigation();
-  const t = useTranslate();
+export const PesticideDrawerShow = ({ id, onClose }: Props) => {
   const { token } = theme.useToken();
   const breakpoint = Grid.useBreakpoint();
 
-  const { query: queryResult } = useShow<IPesticide, HttpError>({
-    resource: "pesticide",
-    id: props?.id,
-  });
-  const pesticide = queryResult.data?.data;
+  const [pesticide, setPesticide] = useState<IPesticide | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState<boolean>(false);
 
-  const handleDrawerClose = () => {
-    if (props?.onClose) {
-      props.onClose();
-      return;
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchPesticide = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axiosClient.get(`/api/pesticides/${id}`);
+        if (response.data.status === 1) {
+          setPesticide(response.data.data); // Lưu dữ liệu từ response vào state pesticide
+        } else {
+          setError("Không thể tải thông tin thuốc trừ sâu.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Có lỗi xảy ra khi tải dữ liệu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPesticide();
+  }, [id]);
+
+  const handleDelete = async () => {
+    if (!id) return;
+    try {
+      await axiosClient.delete(`/api/pesticides/${id}`);
+      message.success("Xóa thuốc trừ sâu thành công");
+      onClose?.();
+    } catch (err) {
+      console.error(err);
+      message.error("Xóa thuốc trừ sâu thất bại");
     }
-
-    go({
-      to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
-      query: { to: undefined },
-      options: { keepQuery: true },
-      type: "replace",
-    });
   };
 
-  return (
-    <Drawer
-      open={true}
-      width={breakpoint.sm ? "378px" : "100%"}
-      zIndex={1001}
-      onClose={handleDrawerClose}
-    >
-      <Flex vertical align="center" justify="center">
-        <Avatar
-          shape="square"
-          style={{
-            aspectRatio: 1,
-            objectFit: "contain",
-            width: "240px",
-            height: "240px",
-            margin: "16px auto",
-            borderRadius: "8px",
-          }}
-          src={pesticide?.image || "/images/pesticide-default-img.png"}
-          alt={pesticide?.name}
-        />
-      </Flex>
-      <Flex
-        vertical
-        style={{
-          backgroundColor: token.colorBgContainer,
-        }}
+  if (loading) {
+    return (
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
       >
-        <Flex
-          vertical
-          style={{
-            padding: "16px",
-          }}
-        >
-          <Typography.Title level={5}>{pesticide?.name}</Typography.Title>
-          <Typography.Text type="secondary">
-            {pesticide?.description}
-          </Typography.Text>
+        <Flex justify="center" align="center" style={{ height: "100%" }}>
+          <Spin size="large" />
         </Flex>
-        <Divider style={{ margin: 0, padding: 0 }} />
-        <List
-          dataSource={[
-            {
-              label: <Typography.Text type="secondary">Status</Typography.Text>,
-              value: pesticide?.status && (
-                <PesticideStatusTag status={pesticide.status} />
-              ),
-            },
-            {
-              label: <Typography.Text type="secondary">Type</Typography.Text>,
-              value: pesticide?.type && (
-                <PesticideTypeTag type={pesticide.type} />
-              ),
-            },
-            {
-              label: (
-                <Typography.Text type="secondary">
-                  Available Quantity
-                </Typography.Text>
-              ),
-              value: (
-                <Typography.Text>
-                  {pesticide?.available_quantity} {pesticide?.unit}
-                </Typography.Text>
-              ),
-            },
-            {
-              label: (
-                <Typography.Text type="secondary">
-                  Total Quantity
-                </Typography.Text>
-              ),
-              value: (
-                <Typography.Text>
-                  {pesticide?.total_quantity} {pesticide?.unit}
-                </Typography.Text>
-              ),
-            },
-          ]}
-          renderItem={(item) => (
-            <List.Item>
-              <List.Item.Meta
-                style={{
-                  padding: "0 16px",
-                }}
-                avatar={item.label}
-                title={item.value}
-              />
-            </List.Item>
-          )}
-        />
-      </Flex>
-      <Flex
-        align="center"
-        justify="space-between"
-        style={{
-          padding: "16px 16px 16px 0",
-        }}
-      >
-        <DeleteButton
-          type="text"
-          recordItemId={pesticide?.id}
-          resource="pesticide"
-          onSuccess={handleDrawerClose}
-        />
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => {
-            if (props?.onEdit) {
-              return props.onEdit();
-            }
+      </Drawer>
+    );
+  }
 
-            return go({
-              to: `${editUrl("pesticide", pesticide?.id?.toString() || "")}`,
-              query: { to: "/pesticide" },
-              options: { keepQuery: true },
-              type: "replace",
-            });
-          }}
+  if (error) {
+    return (
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Typography.Text type="danger">{error}</Typography.Text>
+      </Drawer>
+    );
+  }
+
+  return (
+    <>
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Flex vertical align="center" justify="center">
+          <Avatar
+            shape="square"
+            style={{
+              aspectRatio: 1,
+              objectFit: "contain",
+              width: "240px",
+              height: "240px",
+              margin: "16px auto",
+              borderRadius: "8px",
+            }}
+            src={pesticide?.image}
+            alt={pesticide?.name}
+          />
+        </Flex>
+        <Flex vertical style={{ backgroundColor: token.colorBgContainer }}>
+          <Flex vertical style={{ padding: "16px" }}>
+            <Typography.Title level={5}>{pesticide?.name}</Typography.Title>
+            <Typography.Paragraph type="secondary">
+              {pesticide?.description}
+            </Typography.Paragraph>
+            <Typography.Text>Loại: {pesticide?.type}</Typography.Text>
+            <Typography.Text>
+              <br />
+              Đơn vị: {pesticide?.unit}
+            </Typography.Text>
+            <Typography.Text>
+              <br />
+              Số lượng còn lại: {pesticide?.available_quantity}{" "}
+              {pesticide?.unit}
+            </Typography.Text>
+            <Typography.Text>
+              <br />
+              Tổng số lượng: {pesticide?.total_quantity} {pesticide?.unit}
+            </Typography.Text>
+          </Flex>
+          <Divider style={{ margin: 0, padding: 0 }} />
+        </Flex>
+        <Flex
+          align="center"
+          justify="space-between"
+          style={{ padding: "16px" }}
         >
-          {t("actions.edit")}
-        </Button>
-      </Flex>
-    </Drawer>
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={handleDelete}
+          >
+            Delete
+          </Button>
+          <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+            Edit
+          </Button>
+        </Flex>
+      </Drawer>
+      {editOpen && (
+        <PesticideDrawerForm
+          id={id}
+          action="edit"
+          onClose={() => setEditOpen(false)}
+          onMutationSuccess={() => setEditOpen(false)}
+        />
+      )}
+    </>
   );
 };

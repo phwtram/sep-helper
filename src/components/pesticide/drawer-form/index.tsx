@@ -1,16 +1,7 @@
-import { SaveButton, useDrawerForm } from "@refinedev/antd";
-import {
-  type BaseKey,
-  useApiUrl,
-  useGetToPath,
-  useGo,
-  useTranslate,
-} from "@refinedev/core";
-import { getValueFromEvent } from "@refinedev/antd";
+import { useState, useEffect } from "react";
 import {
   Form,
   Input,
-  InputNumber,
   Select,
   Upload,
   Grid,
@@ -18,205 +9,243 @@ import {
   Flex,
   Avatar,
   Spin,
+  message,
 } from "antd";
-import { useSearchParams } from "react-router";
-import { Drawer } from "../../drawer";
 import { UploadOutlined } from "@ant-design/icons";
-import { useStyles } from "./styled";
-import { IPesticide, PesticideStatus, PesticideType } from "@/interfaces";
+import { Drawer } from "../../drawer";
+import { axiosClient } from "@/lib/api/config/axios-client";
+import { SaveButton } from "@refinedev/antd";
+import { IPesticide } from "@/interfaces";
 
 type Props = {
-  id?: BaseKey;
+  id?: string;
   action: "create" | "edit";
   onClose?: () => void;
   onMutationSuccess?: () => void;
 };
 
-export const PesticideDrawerForm = (props: Props) => {
-  const getToPath = useGetToPath();
-  const [searchParams] = useSearchParams();
-  const go = useGo();
-  const t = useTranslate();
-  const apiUrl = useApiUrl();
+export const PesticideDrawerForm = ({
+  id,
+  action,
+  onClose,
+  onMutationSuccess,
+}: Props) => {
+  const [form] = Form.useForm();
   const breakpoint = Grid.useBreakpoint();
-  const { styles, theme } = useStyles();
+  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
 
-  const { drawerProps, formProps, close, saveButtonProps, formLoading } =
-    useDrawerForm<IPesticide>({
-      resource: "pesticide",
-      id: props?.id,
-      action: props.action,
-      redirect: false,
-      onMutationSuccess: () => {
-        props.onMutationSuccess?.();
-      },
-    });
-
-  const onDrawerClose = () => {
-    close();
-
-    if (props?.onClose) {
-      props.onClose();
-      return;
+  // Fetch pesticide details if action is 'edit' and id is provided
+  useEffect(() => {
+    if (id && action === "edit") {
+      fetchPesticideDetails();
     }
+  }, [id, action]);
 
-    go({
-      to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
-      query: { to: undefined },
-      options: { keepQuery: true },
-      type: "replace",
-    });
+  // Fetch pesticide details for editing
+  const fetchPesticideDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosClient.get(`/api/pesticides/${id}`);
+      if (response.data.status === 1) {
+        const pesticideData = response.data.data;
+        form.setFieldsValue({
+          name: pesticideData.name,
+          description: pesticideData.description,
+          status: pesticideData.status,
+          type: pesticideData.type,
+          available_quantity: pesticideData.available_quantity,
+          total_quantity: pesticideData.total_quantity,
+          unit: pesticideData.unit,
+        });
+        setImageUrl(pesticideData.image); // Set image URL for editing
+      } else {
+        message.error("Không thể tải thông tin thuốc trừ sâu.");
+      }
+    } catch (error) {
+      message.error("Lỗi khi tải dữ liệu.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const image = Form.useWatch("image", formProps.form);
-  const title = props.action === "edit" ? "Edit Pesticide" : "Add Pesticide";
+  // Handle image upload
+  const handleUpload = async ({ file }: any) => {
+    const formData = new FormData();
+    formData.append("image", file);
 
-  const statusOptions = [
-    { label: "UnActived", value: "UnActived" },
-    { label: "InStock", value: "InStock" },
-    { label: "OutStock", value: "OutStock" },
-  ];
-  const typeOptions = [
-    { label: "Insecticide", value: "Insecticide" },
-    { label: "Fungicide", value: "Fungicide" },
-    { label: "Herbicide", value: "Herbicide" },
-    { label: "Other", value: "Other" },
-  ];
-  const unitOptions = [
-    { label: "Lọ 120ml", value: "Lọ 120ml" },
-    { label: "Lọ 300ml", value: "Lọ 300ml" },
-    { label: "Lọ 500ml", value: "Lọ 500ml" },
-  ];
+    try {
+      const response = await axiosClient.post(
+        "/api/pesticides/images/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (response.data.status === 200) {
+        setImageUrl(response.data.image_url);
+        message.success("Tải ảnh lên thành công!");
+      } else {
+        message.error("Lỗi khi tải ảnh lên.");
+      }
+    } catch (error) {
+      message.error("Lỗi kết nối server.");
+    }
+  };
+
+  // Submit form data to API for creating or editing pesticide
+  const onFinish = async (values: any) => {
+    setLoading(true);
+
+    const payload = {
+      name: values.name,
+      description: values.description,
+      status: values.status,
+      type: values.type,
+      image: imageUrl || "", // Send the image URL (either uploaded or default)
+      available_quantity: values.available_quantity,
+      total_quantity: values.total_quantity,
+      unit: values.unit,
+    };
+
+    try {
+      let response;
+      if (action === "edit") {
+        // Update pesticide if action is 'edit'
+        response = await axiosClient.put(`/api/pesticides/${id}`, payload);
+      } else {
+        // Create new pesticide if action is 'create'
+        response = await axiosClient.post("/api/pesticides", payload);
+      }
+
+      if (response.data.status === 200) {
+        message.success(
+          action === "edit" ? "Cập nhật thành công!" : "Tạo mới thành công!"
+        );
+        onMutationSuccess?.();
+        onClose?.();
+      } else {
+        message.error("Có lỗi xảy ra!");
+      }
+    } catch (error) {
+      message.error("Lỗi kết nối server.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Drawer
-      {...drawerProps}
       open={true}
-      title={title}
+      title={action === "edit" ? "Edit Pesticide" : "Add Pesticide"}
       width={breakpoint.sm ? "378px" : "100%"}
-      zIndex={1001}
-      onClose={onDrawerClose}
+      onClose={onClose}
     >
-      <Spin spinning={formLoading}>
-        <Form {...formProps} layout="vertical">
-          <Form.Item
-            name="image"
-            valuePropName="fileList"
-            getValueFromEvent={getValueFromEvent}
-            style={{ margin: 0 }}
-            rules={[{ required: true }]}
-          >
+      <Spin spinning={loading}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Form.Item label="Image">
             <Upload.Dragger
               name="file"
-              action={`${apiUrl}/media/upload`}
+              beforeUpload={() => false} // Prevent auto-upload
               maxCount={1}
-              accept=".png,.jpg,.jpeg"
-              className={styles.uploadDragger}
+              accept="image/*"
+              customRequest={handleUpload} // Custom upload handler
               showUploadList={false}
             >
-              <Flex
-                vertical
-                align="center"
-                justify="center"
-                style={{ position: "relative", height: "100%" }}
-              >
+              <Flex vertical align="center" justify="center">
                 <Avatar
                   shape="square"
                   style={{
-                    aspectRatio: 1,
+                    width: "100%",
+                    maxHeight: "240px",
                     objectFit: "contain",
-                    width: image ? "100%" : "48px",
-                    height: image ? "100%" : "48px",
-                    marginTop: image ? undefined : "auto",
-                    transform: image ? undefined : "translateY(50%)",
                   }}
-                  src={image || "/images/pesticide-default-img.png"}
-                  alt="Pesticide Image"
+                  src={imageUrl || "/images/pesticide-default-img.png"} // Display default or uploaded image
                 />
-                <Button
-                  icon={<UploadOutlined />}
-                  style={{
-                    marginTop: "auto",
-                    marginBottom: "16px",
-                    backgroundColor: theme.colorBgContainer,
-                    ...(!!image && {
-                      position: "absolute",
-                      bottom: 0,
-                    }),
-                  }}
-                >
+                <Button icon={<UploadOutlined />} style={{ marginTop: 8 }}>
                   Upload Image
                 </Button>
               </Flex>
             </Upload.Dragger>
           </Form.Item>
-          <Flex vertical>
-            <Form.Item
-              label="Name"
-              name="name"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <Input />
-            </Form.Item>
-            <Form.Item
-              label="Description"
-              name="description"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <Input.TextArea rows={6} />
-            </Form.Item>
-            <Form.Item
-              label="Available Quantity"
-              name="available_quantity"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <InputNumber style={{ width: "150px" }} min={0} step={0.1} />
-            </Form.Item>
-            <Form.Item
-              label="Total Quantity"
-              name="total_quantity"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <InputNumber style={{ width: "150px" }} min={0} />
-            </Form.Item>
-            <Form.Item
-              label="Unit"
-              name="unit"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <Select options={unitOptions} />
-            </Form.Item>
-            <Form.Item
-              label="Status"
-              name="status"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <Select options={statusOptions} />
-            </Form.Item>
-            <Form.Item
-              label="Type"
-              name="type"
-              className={styles.formItem}
-              rules={[{ required: true }]}
-            >
-              <Select options={typeOptions} />
-            </Form.Item>
-            <Flex
-              align="center"
-              justify="space-between"
-              style={{ padding: "16px 16px 0px 16px" }}
-            >
-              <Button onClick={onDrawerClose}>Cancel</Button>
-              <SaveButton {...saveButtonProps} htmlType="submit" type="primary" icon={null}>
-                Save
-              </SaveButton>
-            </Flex>
+
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please enter a name" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: "Please enter a description" }]}
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item
+            label="Status"
+            name="status"
+            rules={[{ required: true, message: "Please select a status" }]}
+          >
+            <Select
+              options={[
+                { label: "UnActived", value: "UnActived" },
+                { label: "In Stock", value: "InStock" },
+                { label: "Out of Stock", value: "OutStock" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Type"
+            name="type"
+            rules={[{ required: true, message: "Please select a type" }]}
+          >
+            <Select
+              options={[
+                { label: "Productive", value: "Productive" },
+                { label: "Harvestive", value: "Harvestive" },
+                { label: "Packaging", value: "Packaging" },
+                { label: "Inspecting", value: "Inspecting" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Available Quantity"
+            name="available_quantity"
+            rules={[
+              { required: true, message: "Please enter available quantity" },
+            ]}
+          >
+            <Input type="number" />
+          </Form.Item>
+
+          <Form.Item
+            label="Total Quantity"
+            name="total_quantity"
+            rules={[{ required: true, message: "Please enter total quantity" }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+
+          <Form.Item
+            label="Unit"
+            name="unit"
+            rules={[{ required: true, message: "Please enter unit" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Flex align="center" justify="space-between">
+            <Button onClick={onClose}>Cancel</Button>
+            <SaveButton htmlType="submit" type="primary">
+              Save
+            </SaveButton>
           </Flex>
         </Form>
       </Spin>

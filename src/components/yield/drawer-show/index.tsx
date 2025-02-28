@@ -1,157 +1,185 @@
-import {
-  type BaseKey,
-  type HttpError,
-  useGetToPath,
-  useGo,
-  useNavigation,
-  useShow,
-  useTranslate,
-} from "@refinedev/core";
+import { useState, useEffect } from "react";
 import {
   Button,
   Divider,
   Flex,
-  Grid,
-  List,
   Typography,
   theme,
+  Spin,
+  Grid,
+  message,
   Tag,
+  Modal,
 } from "antd";
-import { useSearchParams } from "react-router";
+
 import { Drawer } from "../../drawer";
-import { DeleteButton } from "@refinedev/antd";
-import { EditOutlined } from "@ant-design/icons";
-import { IYield, YieldType, YieldAvailability, YieldSize } from "@/interfaces";
+import {
+  EditOutlined,
+  DeleteOutlined,
+  ExclamationCircleOutlined,
+} from "@ant-design/icons";
+import { axiosClient } from "@/lib/api/config/axios-client";
+import { IYield } from "@/interfaces";
 
 type Props = {
-  id?: BaseKey;
+  id?: string;
   onClose?: () => void;
-  onEdit?: () => void;
 };
 
-export const YieldDrawerShow = (props: Props) => {
-  const getToPath = useGetToPath();
-  const [searchParams] = useSearchParams();
-  const go = useGo();
-  const { editUrl } = useNavigation();
-  const t = useTranslate();
+export const YieldDrawerShow = ({ id, onClose }: Props) => {
   const { token } = theme.useToken();
   const breakpoint = Grid.useBreakpoint();
 
-  const { query: queryResult } = useShow<IYield, HttpError>({
-    resource: "yield",
-    id: props?.id,
-  });
+  const [yieldData, setYieldData] = useState<IYield | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [editOpen, setEditOpen] = useState<boolean>(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState<boolean>(false);
 
-  const yieldData = queryResult.data?.data;
+  useEffect(() => {
+    if (!id) return;
 
-  const handleDrawerClose = () => {
-    if (props?.onClose) {
-      props.onClose();
+    const fetchYield = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const response = await axiosClient.get(`/api/yields/${id}`);
+        if (response.data.status === 200) {
+          setYieldData(response.data.data);
+        } else {
+          setError("Không thể tải thông tin yield.");
+        }
+      } catch (err) {
+        console.error(err);
+        setError("Có lỗi xảy ra khi tải dữ liệu.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchYield();
+  }, [id]);
+
+  const handleDelete = async () => {
+    if (!id) {
+      message.error("ID không hợp lệ.");
       return;
     }
 
-    go({
-      to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
-      query: { to: undefined },
-      options: { keepQuery: true },
-      type: "replace",
-    });
+    try {
+      const response = await axiosClient.delete(`/api/yields/${id}`);
+      if (response.status === 200 || response.status === 204) {
+        message.success("Xóa yield thành công");
+        onClose?.();
+      } else {
+        message.error(`Lỗi: ${response.statusText}`);
+      }
+    } catch (err: any) {
+      console.error("Lỗi xóa yield:", err.response || err);
+      message.error("Không thể xóa yield. Vui lòng thử lại.");
+    }
   };
 
+  if (loading) {
+    return (
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Flex justify="center" align="center" style={{ height: "100%" }}>
+          <Spin size="large" />
+        </Flex>
+      </Drawer>
+    );
+  }
+
+  if (error) {
+    return (
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Typography.Text type="danger">{error}</Typography.Text>
+      </Drawer>
+    );
+  }
+
   return (
-    <Drawer
-      open={true}
-      width={breakpoint.sm ? "378px" : "100%"}
-      zIndex={1001}
-      onClose={handleDrawerClose}
-    >
-      <Flex vertical style={{ backgroundColor: token.colorBgContainer }}>
-        <Flex vertical style={{ padding: "16px" }}>
-          <Typography.Title level={5}>{yieldData?.name}</Typography.Title>
-          <Typography.Paragraph type="secondary">
-            {yieldData?.description}
-          </Typography.Paragraph>
+    <>
+      <Drawer
+        open={!!id}
+        width={breakpoint.sm ? "378px" : "100%"}
+        onClose={onClose}
+      >
+        <Flex vertical style={{ backgroundColor: token.colorBgContainer }}>
+          <Flex vertical style={{ padding: "16px" }}>
+            <Typography.Title level={5}>{yieldData?.name}</Typography.Title>
+            <Typography.Paragraph type="secondary">
+              {yieldData?.description}
+            </Typography.Paragraph>
+          </Flex>
+
+          <Divider style={{ margin: 0, padding: 0 }} />
+
+          <Flex vertical style={{ padding: "16px" }}>
+            <Typography.Text>
+              <strong>Diện tích:</strong> {yieldData?.area}{" "}
+              {yieldData?.areaUnit}
+            </Typography.Text>
+            <Typography.Text>
+              <strong>Loại:</strong> {yieldData?.type}
+            </Typography.Text>
+            <Typography.Text>
+              <strong>Kích thước:</strong> {yieldData?.size}
+            </Typography.Text>
+            <Typography.Text>
+              <strong>Trạng thái:</strong>{" "}
+              <Tag color={yieldData?.isAvailable ? "green" : "red"}>
+                {yieldData?.isAvailable ? "Available" : "Unavailable"}
+              </Tag>
+            </Typography.Text>
+          </Flex>
         </Flex>
 
-        <Divider style={{ margin: 0, padding: 0 }} />
-
-        <List
-          dataSource={[
-            {
-              label: (
-                <Typography.Text type="secondary">Area Unit</Typography.Text>
-              ),
-              value: yieldData?.areaUnit || "-",
-            },
-            {
-              label: (
-                <Typography.Text type="secondary">Area (sq. meters)</Typography.Text>
-              ),
-              value: yieldData?.area || "-",
-            },
-            {
-              label: (
-                <Typography.Text type="secondary">Type</Typography.Text>
-              ),
-              value: yieldData?.type || "-",
-            },
-            {
-              label: (
-                <Typography.Text type="secondary">Availability</Typography.Text>
-              ),
-              value: (
-                <Tag color={yieldData?.isAvailable === "Available" ? "green" : "red"}>
-                  {yieldData?.isAvailable || "-"}
-                </Tag>
-              ),
-            },
-            {
-              label: (
-                <Typography.Text type="secondary">Size</Typography.Text>
-              ),
-              value: yieldData?.size || "-",
-            },
-          ]}
-          renderItem={(data) => (
-            <List.Item>
-              <List.Item.Meta
-                style={{ padding: "0 16px" }}
-                avatar={data.label}
-                title={data.value}
-              />
-            </List.Item>
-          )}
-        />
-      </Flex>
-      <Flex
-        align="center"
-        justify="space-between"
-        style={{ padding: "16px 16px 16px 0" }}
-      >
-        <DeleteButton
-          type="text"
-          recordItemId={yieldData?.id}
-          resource="yield"
-          onSuccess={handleDrawerClose}
-        />
-        <Button
-          icon={<EditOutlined />}
-          onClick={() => {
-            if (props?.onEdit) {
-              return props.onEdit();
-            }
-            return go({
-              to: `/yield/edit/${yieldData?.id?.toString() || ""}`,
-              query: { to: "/yield" },
-              options: { keepQuery: true },
-              type: "replace",
-            });
-          }}
+        <Flex
+          align="center"
+          justify="space-between"
+          style={{ padding: "16px" }}
         >
-          {t("actions.edit")}
-        </Button>
-      </Flex>
-    </Drawer>
+          <Button
+            type="text"
+            danger
+            icon={<DeleteOutlined />}
+            onClick={() => setDeleteModalOpen(true)}
+          >
+            Delete
+          </Button>
+          <Button icon={<EditOutlined />} onClick={() => setEditOpen(true)}>
+            Edit
+          </Button>
+        </Flex>
+      </Drawer>
+
+      <Modal
+        title={
+          <Flex align="center" gap={8}>
+            <ExclamationCircleOutlined style={{ color: "red" }} />
+            <span>Bạn có chắc chắn muốn xóa yield này?</span>
+          </Flex>
+        }
+        open={deleteModalOpen}
+        onOk={handleDelete}
+        onCancel={() => setDeleteModalOpen(false)}
+        okText="Xóa"
+        okType="danger"
+        cancelText="Hủy"
+      >
+        <Typography.Paragraph>
+          Thao tác này không thể hoàn tác.
+        </Typography.Paragraph>
+      </Modal>
+    </>
   );
 };

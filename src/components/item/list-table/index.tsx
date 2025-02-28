@@ -16,7 +16,7 @@ export const ItemsListTable: React.FC = () => {
   const [items, setItems] = useState<IItem[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedItemId, setSelectedItemId] = useState<string | null>(null); 
+  const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchItems = async () => {
@@ -106,7 +106,7 @@ export const ItemsListTable: React.FC = () => {
               icon={<EyeOutlined />}
               onClick={() => {
                 console.log("Opening drawer for ID:", record.id);
-                setSelectedItemId(record.id.toString()); 
+                setSelectedItemId(record.id.toString());
               }}
             />
           )}
