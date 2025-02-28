@@ -4,9 +4,10 @@ import {
   useGo,
   useNavigation,
   useTranslate,
+  useList,
 } from "@refinedev/core";
-
 import {
+  Button,
   Card,
   Divider,
   Flex,
@@ -15,11 +16,10 @@ import {
   Typography,
   theme,
 } from "antd";
-
 import { EyeOutlined } from "@ant-design/icons";
 import { CSSProperties } from "react";
 import { useLocation } from "react-router";
-import { IInspector, InspectorAvailability } from "@/interfaces";
+import { IInspector, InspectorAvailability, IInspectingTask } from "@/interfaces";
 import { PaginationTotal } from "@/components/paginationTotal";
 import { useStyles } from "./styled";
 
@@ -34,141 +34,73 @@ const additionalStyles = {
     top: '10px',
     left: '10px',
     zIndex: 1,
-  } as CSSProperties
+  } as CSSProperties,
 };
+
+// Hàm lấy màu trạng thái của Task
+const getStatusColor = (status?: string) => {
+  const colorMap: Record<string, string> = {
+    completed: "green",
+    ongoing: "blue",
+    pending: "gold",
+    cancel: "red",
+  };
+  return colorMap[status || ""] || "gray";
+};
+
+// Interface kết hợp Inspector và Task
+export interface IInspectorWithTask extends IInspector {
+  task?: IInspectingTask;
+}
 
 export const InspectorListCard = () => {
   const { token } = theme.useToken();
   const { styles, cx } = useStyles();
-  const t = useTranslate();
   const go = useGo();
   const { pathname } = useLocation();
   const { showUrl } = useNavigation();
 
-  const { listProps } = useSimpleList<IInspector, HttpError>({
+  // Fetch danh sách inspectors
+  const { data: inspectorData } = useList<IInspector>({
     resource: "inspector",
-    pagination: {
-      current: 1,
-      pageSize: 12,
-    },
   });
 
-  const getAvailabilityColor = (availability: InspectorAvailability) => {
-    return availability === "Available" ? "green" : "red";
-  };
+  // Fetch danh sách inspectingTasks
+  const { data: taskData } = useList<IInspectingTask>({
+    resource: "inspectingTask",
+  });
+
+  // Kết hợp dữ liệu inspectors với tasks
+  const combinedData: IInspectorWithTask[] =
+    inspectorData?.data.map((inspector) => {
+      const task = taskData?.data.find((t) => t.inspectorID === inspector.id);
+      return { ...inspector, task };
+    }) || [];
 
   return (
     <>
       <Divider style={{ margin: "16px 0px" }} />
       <List
-        {...listProps}
+        dataSource={combinedData}
         pagination={{
-          ...listProps.pagination,
-          showTotal: (total) => (
-            <PaginationTotal total={total} entityName="inspectors" />
-          ),
+          showTotal: (total) => <PaginationTotal total={total} entityName="inspector" />,
         }}
         grid={{
           gutter: [16, 16],
           column: 4,
-          xxl: 4,
-          xl: 4,
-          lg: 3,
-          md: 2,
-          sm: 1,
-          xs: 1,
         }}
         renderItem={(inspector) => (
-          <List.Item style={{ height: "100%" }}>
-            <Card
-              hoverable
-              bordered={false}
-              className={styles.card}
-              styles={{
-                body: {
-                  padding: 16,
-                },
-                cover: {
-                  position: "relative",
-                },
-                actions: {
-                  marginTop: "auto",
-                },
-              }}
-              cover={
-                <>
-                  <Tag
-                    onClick={() => {
-                      return go({
-                        to: `${showUrl("inspector", inspector.id)}`,
-                        query: {
-                          to: pathname,
-                        },
-                        options: {
-                          keepQuery: true,
-                        },
-                        type: "replace",
-                      });
-                    }}
-                    className={cx(styles.viewButton, "viewButton")}
-                    icon={<EyeOutlined />}
-                  >
-                    View
-                  </Tag>
-                  <Tag
-                    color={getAvailabilityColor(inspector.isAvailable)}
-                    style={additionalStyles.availabilityTag}
-                  >
-                    {inspector.isAvailable}
-                  </Tag>
-                  <img
-                    src={inspector.imageUrl || "/images/inspector-default-img.png"}
-                    alt={inspector.name}
-                    style={additionalStyles.image}
-                  />
-                </>
-              }
-              actions={[
-                <Flex
-                  key="actions"
-                  justify="space-between"
-                  style={{
-                    padding: "0 16px",
-                  }}
-                >
-                  <Typography.Text type="secondary">
-                    {inspector.accountID}
-                  </Typography.Text>
-                </Flex>,
-              ]}
-            >
-              <Card.Meta
-                title={
-                  <Flex align="center" justify="space-between">
-                    <Typography.Title
-                      level={5}
-                      ellipsis={{
-                        rows: 1,
-                        tooltip: inspector.name,
-                      }}
-                      style={{ marginBottom: 0 }}
-                    >
-                      {inspector.name}
-                    </Typography.Title>
-                  </Flex>
-                }
-                description={
-                  <Typography.Paragraph
-                    ellipsis={{
-                      rows: 2,
-                      tooltip: inspector.description,
-                    }}
-                    style={{ marginBottom: 0 }}
-                  >
-                    {inspector.description}
-                  </Typography.Paragraph>
-                }
-              />
+          <List.Item>
+            <Card hoverable bordered={false}>
+              <Tag color={getStatusColor(inspector.task?.status)}>{inspector.task?.status?.toUpperCase()}</Tag>
+              <Typography.Title level={5}>{inspector.name}</Typography.Title>
+              <Typography.Text>{inspector.task?.taskName}</Typography.Text>
+              <Button
+                icon={<EyeOutlined />}
+                onClick={() => go({ to: `/inspector/show/${inspector.id}`, query: { to: pathname }, type: "replace" })}
+              >
+                View
+              </Button>
             </Card>
           </List.Item>
         )}

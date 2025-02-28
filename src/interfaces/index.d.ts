@@ -98,8 +98,8 @@ export type YieldSize = "Small" | "Medium" | "Large";
 export type PesticideStatus = "UnActived" | "InStock" | "OutStock";
 export type PesticideType = "Insecticide" | "Fungicide" | "Herbicide"| "Other";
 export type InspectorAvailability = "Available" | "Unavailable";
-
-
+export type InspectingTaskStatus = "pending" | "ongoing" | "completed" | "cancel";
+export type InspectingTestKitColor = "Blue" | "Yellow" | "Red" | "Orange";
 export interface IFertilizer {
   id: number;
   name: string;
@@ -174,4 +174,29 @@ export interface IInspector {
   imageUrl: string;
   description: string;
   isAvailable: InspectorAvailability;
+}
+export interface IInspectingTask {
+  taskID: number;
+  planID: number;
+  taskName: string;
+  taskType: string; 
+  description: string;
+  startDate: Date;
+  endDate: Date;
+  resultContent: string;
+  brixPoint?: number;
+  temperature?: number;
+  humidity?: number;
+  moisture?: number;
+  shellColor?: string; 
+  testGTKitColor?: InspectingTestKitColor;
+  inspectingQuantity: number;
+  unit: string;
+  issuePercent: number; 
+  canHarvest: boolean;
+  completedDate?: Date;
+  inspectorID: number;
+  status: InspectingTaskStatus;
+  createdAt: Date;
+  updatedAt: Date;
 }

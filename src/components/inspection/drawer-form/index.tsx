@@ -6,6 +6,7 @@ import {
   useGo,
   useTranslate,
 } from "@refinedev/core";
+import { getValueFromEvent } from "@refinedev/antd";
 import {
   Form,
   Input,
@@ -21,8 +22,7 @@ import { useSearchParams } from "react-router";
 import { Drawer } from "../../drawer";
 import { UploadOutlined } from "@ant-design/icons";
 import { useStyles } from "./styled";
-import { IInspector } from "@/interfaces";
-import { UploadFile } from "antd/lib";
+import { IInspector, InspectorAvailability } from "@/interfaces";
 
 type Props = {
   id?: BaseKey;
@@ -53,6 +53,7 @@ export const InspectorDrawerForm = (props: Props) => {
 
   const onDrawerClose = () => {
     close();
+
     if (props?.onClose) {
       props.onClose();
       return;
@@ -66,19 +67,8 @@ export const InspectorDrawerForm = (props: Props) => {
     });
   };
 
-  const normalizeImageUrl = (imageUrl: any) => {
-    if (!imageUrl) return [];
-    if (Array.isArray(imageUrl)) return imageUrl;
-    return [{ url: imageUrl }];
-  };
-
-  const initialValues = {
-    ...formProps.initialValues,
-    imageUrl: normalizeImageUrl(formProps.initialValues?.imageUrl),
-  };
-
-  const imageUrl = Form.useWatch("imageUrl", formProps.form);
-
+  const image = Form.useWatch("imageUrl", formProps.form);
+  console.log("Selected image:", image);
   const title = props.action === "edit" ? "Edit Inspector" : "Add Inspector";
 
   const availabilityOptions = [
@@ -96,21 +86,13 @@ export const InspectorDrawerForm = (props: Props) => {
       onClose={onDrawerClose}
     >
       <Spin spinning={formLoading}>
-        <Form {...formProps} initialValues={initialValues} layout="vertical">
+        <Form {...formProps} layout="vertical">
           <Form.Item
             name="imageUrl"
             valuePropName="fileList"
-            getValueFromEvent={(e) => {
-              if (!e || !e.fileList) return [];
-              return e.fileList.map((file: UploadFile) => ({
-                url: file.response?.url || file.url || file.thumbUrl,
-                name: file.name,
-                uid: file.uid,
-                originFileObj: file.originFileObj,
-              }));
-            }}
+            getValueFromEvent={getValueFromEvent}
             style={{ margin: 0 }}
-            rules={[{ required: true, message: "Image is required!" }]}
+            rules={[{ required: true, message: "Please upload an image!" }]}
           >
             <Upload.Dragger
               name="file"
@@ -118,7 +100,7 @@ export const InspectorDrawerForm = (props: Props) => {
               maxCount={1}
               accept=".png,.jpg,.jpeg"
               className={styles.uploadDragger}
-              showUploadList={true}
+              showUploadList={false}
             >
               <Flex
                 vertical
@@ -131,18 +113,12 @@ export const InspectorDrawerForm = (props: Props) => {
                   style={{
                     aspectRatio: 1,
                     objectFit: "contain",
-                    width: imageUrl?.length ? "100%" : "48px",
-                    height: imageUrl?.length ? "100%" : "48px",
-                    marginTop: imageUrl?.length ? undefined : "auto",
-                    transform: imageUrl?.length ? undefined : "translateY(50%)",
+                    width: image ? "100%" : "48px",
+                    height: image ? "100%" : "48px",
+                    marginTop: image ? undefined : "auto",
+                    transform: image ? undefined : "translateY(50%)",
                   }}
-                  src={
-                    Array.isArray(imageUrl) && imageUrl.length > 0
-                      ? imageUrl[0]?.url || "/images/inspector-default-img.png"
-                      : typeof imageUrl === "string"
-                      ? imageUrl
-                      : "/images/inspector-default-img.png"
-                  }
+                  src={image || "/images/inspector-default-img.png"}
                   alt="Inspector Image"
                 />
                 <Button
@@ -151,7 +127,7 @@ export const InspectorDrawerForm = (props: Props) => {
                     marginTop: "auto",
                     marginBottom: "16px",
                     backgroundColor: theme.colorBgContainer,
-                    ...(!!imageUrl && {
+                    ...(!!image && {
                       position: "absolute",
                       bottom: 0,
                     }),
@@ -166,37 +142,50 @@ export const InspectorDrawerForm = (props: Props) => {
             <Form.Item
               label="Account ID"
               name="accountID"
-              rules={[{ required: true }]}
+              className={styles.formItem}
+              rules={[{ required: true, message: "Account ID is required!" }]}
             >
               <Input />
             </Form.Item>
-            <Form.Item label="Name" name="name" rules={[{ required: true }]}>
+            <Form.Item
+              label="Name"
+              name="name"
+              className={styles.formItem}
+              rules={[{ required: true, message: "Name is required!" }]}
+            >
               <Input />
             </Form.Item>
             <Form.Item
               label="Address"
               name="address"
-              rules={[{ required: true }]}
+              className={styles.formItem}
+              rules={[{ required: true, message: "Address is required!" }]}
             >
               <Input />
             </Form.Item>
             <Form.Item
               label="Description"
               name="description"
-              rules={[{ required: true }]}
+              className={styles.formItem}
+              rules={[{ required: true, message: "Description is required!" }]}
             >
               <Input.TextArea rows={6} />
             </Form.Item>
             <Form.Item
               label="Availability"
               name="isAvailable"
-              rules={[{ required: true }]}
+              className={styles.formItem}
+              rules={[{ required: true, message: "Availability is required!" }]}
             >
               <Select options={availabilityOptions} />
             </Form.Item>
-            <Flex align="center" justify="space-between">
+            <Flex
+              align="center"
+              justify="space-between"
+              style={{ padding: "16px 16px 0px 16px" }}
+            >
               <Button onClick={onDrawerClose}>Cancel</Button>
-              <SaveButton {...saveButtonProps} htmlType="submit" type="primary">
+              <SaveButton {...saveButtonProps} htmlType="submit" type="primary" icon={null}>
                 Save
               </SaveButton>
             </Flex>

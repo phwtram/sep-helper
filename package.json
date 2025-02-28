@@ -41,7 +41,6 @@
     "@uiw/react-md-editor": "latest",
     "antd": "latest",
     "antd-style": "latest",
-    "axios": "^1.8.1",
     "dayjs": "latest",
     "google-map-react": "latest",
     "i18next": "latest",
