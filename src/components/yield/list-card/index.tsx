@@ -93,10 +93,10 @@ export const YieldListCard = () => {
               >
                 <Typography.Title
                   level={5}
-                  ellipsis={{ rows: 1, tooltip: item.name }}
+                  ellipsis={{ rows: 1, tooltip: item.yield_name }}
                   style={{ marginBottom: 0 }}
                 >
-                  {item.name || "-"}
+                  {item.yield_name || "-"}
                 </Typography.Title>
                 <Tag color="blue">{item.type || "-"}</Tag>
               </Flex>

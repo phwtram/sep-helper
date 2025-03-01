@@ -1,4 +1,12 @@
-import { useState, useEffect } from "react";
+import { SaveButton, useDrawerForm } from "@refinedev/antd";
+import {
+  type BaseKey,
+  useApiUrl,
+  useGetToPath,
+  useGo,
+  useTranslate,
+} from "@refinedev/core";
+import { getValueFromEvent } from "@refinedev/antd";
 import {
   Form,
   Input,
@@ -9,205 +17,153 @@ import {
   Flex,
   Avatar,
   Spin,
-  message,
 } from "antd";
-import { UploadOutlined } from "@ant-design/icons";
+import { useSearchParams } from "react-router";
 import { Drawer } from "../../drawer";
-import { axiosClient } from "@/lib/api/config/axios-client";
-import { SaveButton } from "@refinedev/antd";
+import { UploadOutlined } from "@ant-design/icons";
+import { useStyles } from "./styled";
 import { IItem } from "@/interfaces";
 
 type Props = {
-  id?: string;
+  id?: BaseKey;
   action: "create" | "edit";
   onClose?: () => void;
   onMutationSuccess?: () => void;
 };
 
-export const ItemDrawerForm = ({
-  id,
-  action,
-  onClose,
-  onMutationSuccess,
-}: Props) => {
-  const [form] = Form.useForm();
+export const ItemDrawerForm = (props: Props) => {
+  const getToPath = useGetToPath();
+  const [searchParams] = useSearchParams();
+  const go = useGo();
+  const t = useTranslate();
+  const apiUrl = useApiUrl();
   const breakpoint = Grid.useBreakpoint();
-  const [loading, setLoading] = useState(false);
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const { styles, theme } = useStyles();
 
-  useEffect(() => {
-    if (id && action === "edit") {
-      fetchItemDetails();
-    }
-  }, [id, action]);
+  const [form] = Form.useForm();
 
-  const fetchItemDetails = async () => {
-    setLoading(true);
-    try {
-      const response = await axiosClient.get(`/api/items/${id}`);
-      if (response.data.status === 200) {
-        const itemData = response.data.data;
-        form.setFieldsValue({
-          name: itemData.name,
-          description: itemData.description,
-          status: itemData.status,
-          type: itemData.type,
-        });
-        setImageUrl(itemData.image_url);
-      } else {
-        message.error("Không thể tải thông tin sản phẩm.");
-      }
-    } catch (error) {
-      message.error("Lỗi khi tải dữ liệu.");
-    } finally {
-      setLoading(false);
+  const { drawerProps, formProps, close, saveButtonProps, formLoading } =
+    useDrawerForm<IItem>({
+      resource: "items",
+      id: props?.id,
+      action: props.action,
+      redirect: false,
+      onMutationSuccess: () => {
+        props.onMutationSuccess?.();
+        onDrawerClose(); // ✅ Đóng Drawer sau khi lưu thành công
+      },
+    });
+
+  // ✅ Xử lý đóng Drawer
+  const onDrawerClose = () => {
+    close();
+    if (props?.onClose) {
+      props.onClose();
+      return;
     }
+    go({
+      to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
+      query: { to: undefined },
+      options: { keepQuery: true },
+      type: "replace",
+    });
   };
 
-  const handleUpload = async ({ file }: any) => {
-    const formData = new FormData();
-    formData.append("image", file);
+  const image = Form.useWatch("image", form);
+  const title = props.action === "edit" ? "Edit Item" : "Add Item";
 
-    try {
-      const response = await axiosClient.post(
-        "/api/items/images/upload",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      if (response.data.status === 200) {
-        setImageUrl(response.data.image_url);
-        message.success("Tải ảnh lên thành công!");
-      } else {
-        message.error("Lỗi khi tải ảnh lên.");
-      }
-    } catch (error) {
-      message.error("Lỗi kết nối server.");
-    }
-  };
-
-  const onFinish = async (values: any) => {
-    setLoading(true);
-
-    const payload = {
-      name: values.name,
-      description: values.description,
-      status: values.status,
-      type: values.type,
-      image_url: imageUrl || "",
-    };
-
-    try {
-      let response;
-      if (action === "edit") {
-        response = await axiosClient.put(`/api/items/${id}`, payload);
-      } else {
-        response = await axiosClient.post("/api/items", payload);
-      }
-
-      if (response.data.status === 200) {
-        message.success(
-          action === "edit" ? "Cập nhật thành công!" : "Tạo mới thành công!"
-        );
-        onMutationSuccess?.();
-        onClose?.();
-      } else {
-        message.error("Có lỗi xảy ra!");
-      }
-    } catch (error) {
-      message.error("Lỗi kết nối server.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  const statusOptions = [
+    { label: "UnActived", value: "UnActived" },
+    { label: "In Stock", value: "InStock" },
+    { label: "Out of Stock", value: "OutStock" },
+  ];
 
   return (
     <Drawer
+      {...drawerProps}
       open={true}
-      title={action === "edit" ? "Edit Item" : "Add Item"}
+      title={title}
       width={breakpoint.sm ? "378px" : "100%"}
-      onClose={onClose}
+      zIndex={1001}
+      onClose={onDrawerClose}
     >
-      <Spin spinning={loading}>
-        <Form form={form} layout="vertical" onFinish={onFinish}>
-          <Form.Item label="Image">
+      <Spin spinning={formLoading}>
+        <Form {...formProps} layout="vertical" form={form}>
+          <Form.Item
+            name="image"
+            valuePropName="fileList"
+            getValueFromEvent={getValueFromEvent}
+            style={{ margin: 0 }}
+            rules={[{ required: true, message: "Please upload an image" }]}
+          >
             <Upload.Dragger
               name="file"
-              beforeUpload={() => false}
+              action={`${apiUrl}/media/upload`}
               maxCount={1}
-              accept="image/*"
-              customRequest={handleUpload}
+              accept=".png,.jpg,.jpeg"
+              className={styles.uploadDragger}
               showUploadList={false}
+              onChange={(info) => {
+                if (info.file.status === "done") {
+                  const imageUrl = info.file.response?.url;
+                  form.setFieldsValue({ image: imageUrl });
+                }
+              }}
             >
-              <Flex vertical align="center" justify="center">
+              <Flex
+                vertical
+                align="center"
+                justify="center"
+                style={{ position: "relative", height: "100%" }}
+              >
                 <Avatar
                   shape="square"
                   style={{
-                    width: "100%",
-                    maxHeight: "240px",
+                    aspectRatio: 1,
                     objectFit: "contain",
+                    width: image ? "100%" : "48px",
+                    height: image ? "100%" : "48px",
                   }}
-                  src={imageUrl || "/images/item-default-img.png"}
+                  src={image || "/images/item-default-img.png"}
+                  alt="Item Image"
                 />
-                <Button icon={<UploadOutlined />} style={{ marginTop: 8 }}>
-                  Upload Image
-                </Button>
+                <Button icon={<UploadOutlined />}>Upload Image</Button>
               </Flex>
             </Upload.Dragger>
           </Form.Item>
 
-          <Form.Item
-            label="Name"
-            name="name"
-            rules={[{ required: true, message: "Please enter a name" }]}
-          >
-            <Input />
-          </Form.Item>
+          <Flex vertical>
+            <Form.Item
+              label="Name"
+              name="name"
+              className={styles.formItem}
+              rules={[{ required: true, message: "Name is required" }]}
+            >
+              <Input />
+            </Form.Item>
+            <Form.Item
+              label="Description"
+              name="description"
+              className={styles.formItem}
+              rules={[{ required: true, message: "Description is required" }]}
+            >
+              <Input.TextArea rows={4} />
+            </Form.Item>
+            <Form.Item
+              label="Status"
+              name="status"
+              className={styles.formItem}
+              rules={[{ required: true, message: "Please select status" }]}
+            >
+              <Select options={statusOptions} />
+            </Form.Item>
 
-          <Form.Item
-            label="Description"
-            name="description"
-            rules={[{ required: true, message: "Please enter a description" }]}
-          >
-            <Input.TextArea rows={4} />
-          </Form.Item>
-
-          <Form.Item
-            label="Status"
-            name="status"
-            rules={[{ required: true, message: "Please select a status" }]}
-          >
-            <Select
-              options={[
-                { label: "UnActived", value: "UnActived" },
-                { label: "In Stock", value: "InStock" },
-                { label: "Out of Stock", value: "OutStock" },
-              ]}
-            />
-          </Form.Item>
-
-          <Form.Item
-            label="Type"
-            name="type"
-            rules={[{ required: true, message: "Please select a type" }]}
-          >
-            <Select
-              options={[
-                { label: "Productive", value: "Productive" },
-                { label: "Harvestive", value: "Harvestive" },
-                { label: "Packaging", value: "Packaging" },
-                { label: "Inspecting", value: "Inspecting" },
-              ]}
-            />
-          </Form.Item>
-
-          <Flex align="center" justify="space-between">
-            <Button onClick={onClose}>Cancel</Button>
-            <SaveButton htmlType="submit" type="primary">
-              Save
-            </SaveButton>
+            <Flex align="center" justify="space-between" style={{ paddingTop: 16 }}>
+              <Button onClick={onDrawerClose}>Cancel</Button>
+              <SaveButton {...saveButtonProps} htmlType="submit" type="primary">
+                Save
+              </SaveButton>
+            </Flex>
           </Flex>
         </Form>
       </Spin>

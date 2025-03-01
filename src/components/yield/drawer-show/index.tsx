@@ -115,7 +115,7 @@ export const YieldDrawerShow = ({ id, onClose }: Props) => {
       >
         <Flex vertical style={{ backgroundColor: token.colorBgContainer }}>
           <Flex vertical style={{ padding: "16px" }}>
-            <Typography.Title level={5}>{yieldData?.name}</Typography.Title>
+            <Typography.Title level={5}>{yieldData?.yield_name}</Typography.Title>
             <Typography.Paragraph type="secondary">
               {yieldData?.description}
             </Typography.Paragraph>

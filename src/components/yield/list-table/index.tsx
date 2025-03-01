@@ -66,7 +66,7 @@ export const YieldListTable: React.FC = () => {
         }}
       >
         <Table.Column title="ID" dataIndex="id" key="id" width={80} />
-        <Table.Column title="Name" dataIndex="name" key="name" />
+        <Table.Column title="Name" dataIndex="yield_name" key="name" />
         <Table.Column
           title="Description"
           dataIndex="description"

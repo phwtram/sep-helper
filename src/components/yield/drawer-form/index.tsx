@@ -76,7 +76,7 @@ export const YieldDrawerForm = (props: Props) => {
           <Flex vertical>
             <Form.Item
               label="Yield Name"
-              name="name"
+              name="yield_name"
               className={styles.formItem}
               rules={[{ required: true }]}
             >

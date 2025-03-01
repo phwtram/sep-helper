@@ -50,6 +50,7 @@ export const FertilizerDrawerForm = ({
   const breakpoint = Grid.useBreakpoint();
   const [loading, setLoading] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [isOpen, setIsOpen] = useState(true); // ✅ Thêm state để kiểm soát Drawer
 
   useEffect(() => {
     if (id && action === "edit") {
@@ -90,6 +91,7 @@ export const FertilizerDrawerForm = ({
 
       if (response.data.status === 200) {
         setImageUrl(response.data.image_url);
+        form.setFieldsValue({ image_url: response.data.image_url });
         message.success("Tải ảnh lên thành công!");
       } else {
         message.error("Lỗi khi tải ảnh lên.");
@@ -117,7 +119,7 @@ export const FertilizerDrawerForm = ({
           action === "edit" ? "Cập nhật thành công!" : "Tạo mới thành công!"
         );
         onMutationSuccess?.();
-        onClose?.();
+        onDrawerClose(); // ✅ Đóng Drawer sau khi lưu thành công
       } else {
         message.error("Có lỗi xảy ra!");
       }
@@ -128,12 +130,20 @@ export const FertilizerDrawerForm = ({
     }
   };
 
+  // ✅ Xử lý đóng Drawer
+  const onDrawerClose = () => {
+    setIsOpen(false); // Đặt trạng thái đóng Drawer
+    if (onClose) {
+      onClose();
+    }
+  };
+
   return (
     <Drawer
-      open={true}
+      open={isOpen} // ✅ Điều khiển trạng thái mở/đóng
       title={action === "edit" ? "Edit Fertilizer" : "Add Fertilizer"}
       width={breakpoint.sm ? "378px" : "100%"}
-      onClose={onClose}
+      onClose={onDrawerClose} // ✅ Đóng Drawer đúng cách
     >
       <Spin spinning={loading}>
         <Form form={form} layout="vertical" onFinish={onFinish}>
@@ -168,28 +178,26 @@ export const FertilizerDrawerForm = ({
             name="name"
             rules={[{ required: true, message: "Please enter a name" }]}
           >
-            {" "}
-            <Input />{" "}
+            <Input />
           </Form.Item>
           <Form.Item
             label="Description"
             name="description"
             rules={[{ required: true, message: "Please enter a description" }]}
           >
-            {" "}
-            <Input.TextArea rows={4} />{" "}
+            <Input.TextArea rows={4} />
           </Form.Item>
           <Form.Item
             label="Available Quantity"
             name="available_quantity"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please enter a quantity" }]}
           >
             <InputNumber min={0} style={{ width: "100%" }} />
           </Form.Item>
           <Form.Item
             label="Total Quantity"
             name="total_quantity"
-            rules={[{ required: true }]}
+            rules={[{ required: true, message: "Please enter a total quantity" }]}
           >
             <InputNumber min={0} style={{ width: "100%" }} />
           </Form.Item>
@@ -204,7 +212,7 @@ export const FertilizerDrawerForm = ({
           </Form.Item>
 
           <Flex align="center" justify="space-between">
-            <Button onClick={onClose}>Cancel</Button>
+            <Button onClick={onDrawerClose}>Cancel</Button>
             <Button htmlType="submit" type="primary">
               Save
             </Button>

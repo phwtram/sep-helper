@@ -23,27 +23,23 @@ export const SeedListCard = () => {
   const { showUrl } = useNavigation();
 
   const { listProps } = useSimpleList<ISeed, HttpError>({
-    resource: "seed",
+    resource: "plants",
     pagination: {
       current: 1,
       pageSize: 12,
     },
   });
 
-  // Hàm lấy màu sắc tương ứng với GT Test Kit
+  // Hàm lấy màu sắc tương ứng với GT Test Kit Color
   const getGTTestKitColor = (color: string | null | undefined) => {
-    switch (color) {
-      case "Blue":
-        return "blue";
-      case "Yellow":
-        return "gold";
-      case "Red":
-        return "red";
-      case "Orange":
-        return "orange";
-      default:
-        return "default";
-    }
+    const colorMap: Record<string, string> = {
+      Blue: "blue",
+      Yellow: "gold",
+      Red: "red",
+      Orange: "orange",
+      Green: "green",
+    };
+    return colorMap[color || ""] || "default";
   };
 
   return (
@@ -54,7 +50,7 @@ export const SeedListCard = () => {
         pagination={{
           ...listProps.pagination,
           showTotal: (total) => (
-            <PaginationTotal total={total} entityName="seeds" />
+            <PaginationTotal total={total} entityName="plants" />
           ),
         }}
         grid={{
@@ -67,7 +63,7 @@ export const SeedListCard = () => {
           sm: 1,
           xs: 1,
         }}
-        renderItem={(item) => (
+        renderItem={(plant) => (
           <List.Item style={{ height: "100%" }}>
             <Card
               hoverable
@@ -78,20 +74,30 @@ export const SeedListCard = () => {
                 cover: { position: "relative" },
                 actions: { marginTop: "auto" },
               }}
+              cover={
+                <img
+                  src={plant.image_url || "/images/plant-default-img.png"}
+                  alt={plant.plant_name}
+                  style={{
+                    width: "100%",
+                    aspectRatio: "288/160",
+                    objectFit: "cover",
+                  }}
+                />
+              }
             >
+              {/* Nút View */}
               <Tag
                 onClick={() => {
-                  const SeedID = item.id;
-                  if (!SeedID) {
-                    console.error("Error: SeedID is undefined");
+                  const plantID = plant.id;
+                  if (!plantID) {
+                    console.error("Error: Plant ID is undefined");
                     return;
                   }
 
-                  const targetUrl = `/seeds/${SeedID}`;
-                  console.log("Navigating to:", targetUrl);
-
                   go({
-                    to: targetUrl,
+                    to: `${showUrl("plants", plantID)}`,
+                    query: { to: pathname },
                     options: { keepQuery: true },
                     type: "replace",
                   });
@@ -102,49 +108,57 @@ export const SeedListCard = () => {
                 View
               </Tag>
 
-              <Flex
-                align="center"
-                justify="space-between"
-                style={{ marginBottom: 8 }}
-              >
+              {/* Tiêu đề */}
+              <Flex align="center" justify="space-between" style={{ marginBottom: 8 }}>
                 <Typography.Title
                   level={5}
-                  ellipsis={{ rows: 1, tooltip: item.name }}
+                  ellipsis={{ rows: 1, tooltip: plant.plant_name }}
                   style={{ marginBottom: 0 }}
                 >
-                  {item.name || "-"}
+                  {plant.plant_name || "-"}
                 </Typography.Title>
-                <Tag color={getGTTestKitColor(item.GTTestKitColor)}>
-                  {item.GTTestKitColor || "-"}
+                <Tag color={getGTTestKitColor(plant.gt_test_kit_color)}>
+                  {plant.gt_test_kit_color || "-"}
                 </Tag>
               </Flex>
 
+              {/* Mô tả */}
               <Typography.Paragraph
-                ellipsis={{ rows: 2, tooltip: item.Description }}
+                ellipsis={{ rows: 2, tooltip: plant.description }}
                 style={{ marginBottom: 8 }}
               >
-                {item.Description || "-"}
+                {plant.description || "-"}
               </Typography.Paragraph>
 
-              <Flex
-                justify="space-between"
-                align="center"
-                style={{ marginBottom: 8 }}
-              >
+              {/* Trạng thái */}
+              <Flex justify="space-between" align="center" style={{ marginBottom: 8 }}>
                 <Typography.Text type="secondary">
                   Availability:
                 </Typography.Text>
-                <Tag color={item.IsAvailable ? "green" : "red"}>
-                  {item.IsAvailable ? "Available" : "Not Available"}
+                <Tag color={plant.is_available ? "green" : "red"}>
+                  {plant.is_available ? "Available" : "Not Available"}
                 </Tag>
               </Flex>
 
+              {/* Nhiệt độ & Độ ẩm */}
               <Flex justify="space-between">
                 <Typography.Text type="secondary">
-                  Temp: {item.MinTemp ?? "-"} - {item.MaxTemp ?? "-"}°C
+                  Temp: {plant.min_temp ?? "-"} - {plant.max_temp ?? "-"}°C
                 </Typography.Text>
                 <Typography.Text type="secondary">
-                  Humidity: {item.MinHumid ?? "-"} - {item.MaxHumid ?? "-"}%
+                  Humidity: {plant.min_humid ?? "-"} - {plant.max_humid ?? "-"}%
+                </Typography.Text>
+              </Flex>
+
+              {/* Phân bón & Thuốc trừ sâu */}
+              <Flex justify="space-between" style={{ marginTop: 8 }}>
+                <Typography.Text type="secondary">
+                  Fertilizer: {plant.min_fertilizer ?? "-"} - {plant.max_fertilizer ?? "-"} {plant.fertilizer_unit}
+                </Typography.Text>
+              </Flex>
+              <Flex justify="space-between">
+                <Typography.Text type="secondary">
+                  Pesticide: {plant.min_pesticide ?? "-"} - {plant.max_pesticide ?? "-"} {plant.pesticide_unit}
                 </Typography.Text>
               </Flex>
             </Card>

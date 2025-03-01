@@ -123,29 +123,30 @@ export interface IItem {
 
 export interface ISeed {
   id: number;
-  name: string;
-  Description: string;
-  IsAvailable: SeedAvailability;
-  MinTemp: number;
-  MaxTemp: number;
-  MinHumid: number;
-  MaxHumid: number;
-  MinMoisture: number;
-  MaxMoisture: number;
-  MinFertilizerQuantity: number;
-  MaxFertilizerQuantity: number;
-  FertilizerUnit: string;
-  MinPesticideQuantity: number;
-  MaxPesticideQuantity: number;
-  PesticideUnit: string;
-  MinBrixPoint: number;
-  MaxBrixPoint: number;
-  GTTestKitColor: SeedTestKitColor;
+  plant_name: string;
+  description: string;
+  is_available: boolean; 
+  min_temp: number;
+  max_temp: number;
+  min_humid: number;
+  max_humid: number;
+  min_moisture: number;
+  max_moisture: number;
+  min_fertilizer: number;
+  max_fertilizer: number;
+  fertilizer_unit: string;
+  min_pesticide: number;
+  max_pesticide: number;
+  pesticide_unit: string;
+  min_brix_point: number;
+  max_brix_point: number;
+  gt_test_kit_color: SeedTestKitColor;
+  image_url: string; 
 }
 
 export interface IYield {
   id: number;
-  name: string;
+  yield_name: string;
   areaUnit: string;
   area: number;
   type: YieldType;
