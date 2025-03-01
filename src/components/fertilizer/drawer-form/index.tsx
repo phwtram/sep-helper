@@ -119,7 +119,7 @@ export const FertilizerDrawerForm = ({
           action === "edit" ? "Cập nhật thành công!" : "Tạo mới thành công!"
         );
         onMutationSuccess?.();
-        onDrawerClose(); // ✅ Đóng Drawer sau khi lưu thành công
+        onDrawerClose(); 
       } else {
         message.error("Có lỗi xảy ra!");
       }
@@ -130,9 +130,9 @@ export const FertilizerDrawerForm = ({
     }
   };
 
-  // ✅ Xử lý đóng Drawer
+
   const onDrawerClose = () => {
-    setIsOpen(false); // Đặt trạng thái đóng Drawer
+    setIsOpen(false);
     if (onClose) {
       onClose();
     }
