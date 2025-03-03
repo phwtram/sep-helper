@@ -35,7 +35,6 @@ export const ItemsListTable: React.FC = () => {
     }
   };
 
-  // Gọi fetchItems lại sau khi chỉnh sửa
   const handleMutationSuccess = () => {
     fetchItems();
   };
@@ -48,12 +47,25 @@ export const ItemsListTable: React.FC = () => {
     switch (type) {
       case "Productive":
         return "blue";
-      case "Harvestive":
+      case "Harvesting":
         return "green";
       case "Packaging":
         return "orange";
       case "Inspecting":
         return "purple";
+      default:
+        return "default";
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "UnActived":
+        return "red";
+      case "InStock":
+        return "green";
+      case "OutStock":
+        return "volcano";
       default:
         return "default";
     }
@@ -79,7 +91,17 @@ export const ItemsListTable: React.FC = () => {
           title="Image"
           dataIndex="image"
           key="image"
-          render={(image) => <Avatar shape="square" src={image} alt="Item" />}
+          render={(image) => (
+            <Avatar
+              shape="square"
+              src={
+                image && image.trim() !== ""
+                  ? image
+                  : "/images/default-image.png"
+              }
+              alt="Item"
+            />
+          )}
         />
         <Table.Column title="Name" dataIndex="name" key="name" />
         <Table.Column
@@ -93,8 +115,21 @@ export const ItemsListTable: React.FC = () => {
           dataIndex="status"
           key="status"
           width={120}
-          render={(value) => <ItemStatusTag value={value} />}
+          render={(status) => (
+            <Tag color={getStatusColor(status)} style={{ borderRadius: "6px" }}>
+              {status}
+            </Tag>
+          )}
         />
+
+        <Table.Column
+          title="Quantity"
+          dataIndex="quantity"
+          key="quantity"
+          width={100}
+        />
+        <Table.Column title="Unit" dataIndex="unit" key="unit" width={100} />
+
         <Table.Column
           title="Type"
           dataIndex="type"

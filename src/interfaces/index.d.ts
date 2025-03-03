@@ -88,17 +88,26 @@ export interface ISeasonProgressEntry {
 
 export type FertilizerStatus = "UnActived" | "InStock" | "OutStock";
 export type FertilizerType = "Organic" | "Chemical" | "Mixed";
-export type ItemStatus = "UnActived" | "InStock" | "OutStock";
-export type ItemType = "Productive" | "Harvestive" | "Packaging" | "Inspecting";
+export type ItemStatus = "Inactive" | "InStock" | "OutStock";
+export type ItemType =
+  | "Caring"
+  | "Productive"
+  | "Harvestive"
+  | "Packaging"
+  | "Inspecting";
 export type SeedTestKitColor = "Blue" | "Yellow" | "Red" | "Orange";
 export type SeedAvailability = "Available" | "Unavailable";
-export type YieldType = "Đất thịt" | "Đất mùn" ;
+export type YieldType = "Đất thịt" | "Đất mùn";
 export type YieldAvailability = "Available" | "Unavailable";
 export type YieldSize = "Small" | "Medium" | "Large";
 export type PesticideStatus = "UnActived" | "InStock" | "OutStock";
-export type PesticideType = "Insecticide" | "Fungicide" | "Herbicide"| "Other";
+export type PesticideType = "Insecticide" | "Fungicide" | "Herbicide" | "Other";
 export type InspectorAvailability = "Available" | "Unavailable";
-export type InspectingTaskStatus = "pending" | "ongoing" | "completed" | "cancel";
+export type InspectingTaskStatus =
+  | "pending"
+  | "ongoing"
+  | "completed"
+  | "cancel";
 export type InspectingTestKitColor = "Blue" | "Yellow" | "Red" | "Orange";
 export interface IFertilizer {
   id: number;
@@ -119,13 +128,15 @@ export interface IItem {
   image: string;
   status: ItemStatus;
   type: ItemType;
+  quantity: number;
+  unit: string;
 }
 
 export interface ISeed {
   id: number;
   plant_name: string;
   description: string;
-  is_available: boolean; 
+  is_available: boolean;
   min_temp: number;
   max_temp: number;
   min_humid: number;
@@ -141,7 +152,7 @@ export interface ISeed {
   min_brix_point: number;
   max_brix_point: number;
   gt_test_kit_color: SeedTestKitColor;
-  image_url: string; 
+  image_url: string;
 }
 
 export interface IYield {
@@ -168,7 +179,7 @@ export interface IPesticide {
 }
 
 export interface IInspector {
-  id: number
+  id: number;
   accountID: string;
   address: string;
   name: string;
@@ -180,7 +191,7 @@ export interface IInspectingTask {
   taskID: number;
   planID: number;
   taskName: string;
-  taskType: string; 
+  taskType: string;
   description: string;
   startDate: Date;
   endDate: Date;
@@ -189,11 +200,11 @@ export interface IInspectingTask {
   temperature?: number;
   humidity?: number;
   moisture?: number;
-  shellColor?: string; 
+  shellColor?: string;
   testGTKitColor?: InspectingTestKitColor;
   inspectingQuantity: number;
   unit: string;
-  issuePercent: number; 
+  issuePercent: number;
   canHarvest: boolean;
   completedDate?: Date;
   inspectorID: number;

@@ -1,12 +1,4 @@
-import { SaveButton, useDrawerForm } from "@refinedev/antd";
-import {
-  type BaseKey,
-  useApiUrl,
-  useGetToPath,
-  useGo,
-  useTranslate,
-} from "@refinedev/core";
-import { getValueFromEvent } from "@refinedev/antd";
+import { useState, useEffect } from "react";
 import {
   Form,
   Input,
@@ -18,50 +10,74 @@ import {
   Avatar,
   Spin,
   message,
-  InputNumber,
 } from "antd";
-import { useSearchParams } from "react-router";
-import { Drawer } from "../../drawer";
 import { UploadOutlined } from "@ant-design/icons";
+import { Drawer } from "../../drawer";
+import { axiosClient } from "@/lib/api/config/axios-client";
+import { SaveButton } from "@refinedev/antd";
 import { IPesticide } from "@/interfaces";
-import { useEffect } from "react";
+import { useGetToPath, useGo } from "@refinedev/core";
+import { useSearchParams } from "react-router";
 
 type Props = {
-  id?: BaseKey;
+  id?: string;
   action: "create" | "edit";
   onClose?: () => void;
   onMutationSuccess?: () => void;
 };
 
-export const PesticideDrawerForm = (props: Props) => {
+export const PesticideDrawerForm = ({
+  id,
+  action,
+  onClose,
+  onMutationSuccess,
+}: Props) => {
+  const [form] = Form.useForm();
+  const breakpoint = Grid.useBreakpoint();
+  const [loading, setLoading] = useState(false);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
   const getToPath = useGetToPath();
   const [searchParams] = useSearchParams();
   const go = useGo();
-  const t = useTranslate();
-  const apiUrl = useApiUrl();
-  const breakpoint = Grid.useBreakpoint();
 
-  const [form] = Form.useForm();
+  // Fetch pesticide details if action is 'edit' and id is provided
+  useEffect(() => {
+    if (id && action === "edit") {
+      fetchPesticideDetails();
+    }
+  }, [id, action]);
 
-  const { drawerProps, formProps, close, saveButtonProps, formLoading } =
-    useDrawerForm<IPesticide>({
-      resource: "pesticides",
-      id: props?.id,
-      action: props.action,
-      redirect: false,
-      onMutationSuccess: () => {
-        props.onMutationSuccess?.();
-      },
-    });
-
+  // Fetch pesticide details for editing
+  const fetchPesticideDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosClient.get(`/api/pesticides/${id}`);
+      if (response.data.status === 1) {
+        const pesticideData = response.data.data;
+        form.setFieldsValue({
+          name: pesticideData.name,
+          description: pesticideData.description,
+          status: pesticideData.status,
+          type: pesticideData.type,
+          available_quantity: pesticideData.available_quantity,
+          total_quantity: pesticideData.total_quantity,
+          unit: pesticideData.unit,
+        });
+        setImageUrl(pesticideData.image); // Set image URL for editing
+      } else {
+        message.error("Không thể tải thông tin thuốc trừ sâu.");
+      }
+    } catch (error) {
+      message.error("Lỗi khi tải dữ liệu.");
+    } finally {
+      setLoading(false);
+    }
+  };
   const onDrawerClose = () => {
-    close();
-
-    if (props?.onClose) {
-      props.onClose();
+    if (onClose) {
+      onClose();
       return;
     }
-
     go({
       to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
       query: { to: undefined },
@@ -70,100 +86,183 @@ export const PesticideDrawerForm = (props: Props) => {
     });
   };
 
-  const image = Form.useWatch("image", form);
-  const title = props.action === "edit" ? "Edit Pesticide" : "Add Pesticide";
+  // Handle image upload
+  const handleUpload = async ({ file }: any) => {
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const response = await axiosClient.post(
+        "/api/pesticides/images/upload",
+        formData,
+        {
+          headers: { "Content-Type": "multipart/form-data" },
+        }
+      );
+
+      if (response.data.status === 200) {
+        setImageUrl(response.data.image_url);
+        message.success("Tải ảnh lên thành công!");
+      } else {
+        message.error("Lỗi khi tải ảnh lên.");
+      }
+    } catch (error) {
+      message.error("Lỗi kết nối server.");
+    }
+  };
+
+  // Submit form data to API for creating or editing pesticide
+  const onFinish = async (values: any) => {
+    setLoading(true);
+
+    const payload = {
+      name: values.name,
+      description: values.description,
+      status: values.status,
+      type: values.type,
+      image: imageUrl || "", // Send the image URL (either uploaded or default)
+      available_quantity: values.available_quantity,
+      total_quantity: values.total_quantity,
+      unit: values.unit,
+    };
+
+    try {
+      let response;
+      if (action === "edit") {
+        // Update pesticide if action is 'edit'
+        response = await axiosClient.put(`/api/pesticides/${id}`, payload);
+      } else {
+        // Create new pesticide if action is 'create'
+        response = await axiosClient.post("/api/pesticides", payload);
+      }
+
+      if (response.data.status === 200) {
+        message.success(
+          action === "edit" ? "Cập nhật thành công!" : "Tạo mới thành công!"
+        );
+        onMutationSuccess?.();
+        onClose?.();
+      } else {
+        message.error("Có lỗi xảy ra!");
+      }
+    } catch (error) {
+      message.error("Lỗi kết nối server.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Drawer
-      {...drawerProps}
       open={true}
-      title={title}
+      title={action === "edit" ? "Edit Pesticide" : "Add Pesticide"}
       width={breakpoint.sm ? "378px" : "100%"}
-      zIndex={1001}
       onClose={onDrawerClose}
     >
-      <Spin spinning={formLoading}>
-        <Form {...formProps} layout="vertical" form={form}>
-          {/* Image Upload */}
-          <Form.Item
-            name="image"
-            valuePropName="fileList"
-            getValueFromEvent={getValueFromEvent}
-            style={{ margin: 0 }}
-            rules={[{ required: true, message: "Please upload an image" }]}
-          >
+      <Spin spinning={loading}>
+        <Form form={form} layout="vertical" onFinish={onFinish}>
+          <Form.Item label="Image">
             <Upload.Dragger
               name="file"
-              action={`${apiUrl}/media/upload`}
+              beforeUpload={() => false} // Prevent auto-upload
               maxCount={1}
-              accept=".png,.jpg,.jpeg"
+              accept="image/*"
+              customRequest={handleUpload} // Custom upload handler
               showUploadList={false}
-              onChange={(info) => {
-                if (info.file.status === "done") {
-                  const imageUrl = info.file.response?.url;
-                  form.setFieldsValue({ image: imageUrl });
-                }
-              }}
             >
-              <Flex vertical align="center" justify="center" style={{ height: "100%" }}>
+              <Flex vertical align="center" justify="center">
                 <Avatar
                   shape="square"
                   style={{
-                    aspectRatio: 1,
+                    width: "100%",
+                    maxHeight: "240px",
                     objectFit: "contain",
-                    width: image ? "100%" : "48px",
-                    height: image ? "100%" : "48px",
                   }}
-                  src={image || "/images/pesticide-default-img.png"}
-                  alt="Pesticide Image"
+                  src={imageUrl || "/images/pesticide-default-img.png"} // Display default or uploaded image
                 />
-                <Button icon={<UploadOutlined />}>Upload Image</Button>
+                <Button icon={<UploadOutlined />} style={{ marginTop: 8 }}>
+                  Upload Image
+                </Button>
               </Flex>
             </Upload.Dragger>
           </Form.Item>
 
-          <Flex vertical>
-            <Form.Item label="Name" name="name" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
-            <Form.Item label="Description" name="description" rules={[{ required: true }]}>
-              <Input.TextArea rows={6} />
-            </Form.Item>
-            <Form.Item label="Status" name="status" rules={[{ required: true }]}>
-              <Select
-                options={[
-                  { label: "UnActived", value: "UnActived" },
-                  { label: "In Stock", value: "InStock" },
-                  { label: "Out of Stock", value: "OutStock" },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item label="Type" name="type" rules={[{ required: true }]}>
-              <Select
-                options={[
-                  { label: "Productive", value: "Productive" },
-                  { label: "Harvestive", value: "Harvestive" },
-                  { label: "Packaging", value: "Packaging" },
-                  { label: "Inspecting", value: "Inspecting" },
-                ]}
-              />
-            </Form.Item>
-            <Form.Item label="Available Quantity" name="available_quantity" rules={[{ required: true }]}>
-              <InputNumber min={0} />
-            </Form.Item>
-            <Form.Item label="Total Quantity" name="total_quantity" rules={[{ required: true }]}>
-              <InputNumber min={0} />
-            </Form.Item>
-            <Form.Item label="Unit" name="unit" rules={[{ required: true }]}>
-              <Input />
-            </Form.Item>
+          <Form.Item
+            label="Name"
+            name="name"
+            rules={[{ required: true, message: "Please enter a name" }]}
+          >
+            <Input />
+          </Form.Item>
 
-            <Flex align="center" justify="space-between" style={{ paddingTop: 16 }}>
-              <Button onClick={onDrawerClose}>Cancel</Button>
-              <SaveButton {...saveButtonProps} htmlType="submit" type="primary">
-                Save
-              </SaveButton>
-            </Flex>
+          <Form.Item
+            label="Description"
+            name="description"
+            rules={[{ required: true, message: "Please enter a description" }]}
+          >
+            <Input.TextArea rows={4} />
+          </Form.Item>
+
+          <Form.Item
+            label="Status"
+            name="status"
+            rules={[{ required: true, message: "Please select a status" }]}
+          >
+            <Select
+              options={[
+                { label: "UnActived", value: "UnActived" },
+                { label: "In Stock", value: "InStock" },
+                { label: "Out of Stock", value: "OutStock" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Type"
+            name="type"
+            rules={[{ required: true, message: "Please select a type" }]}
+          >
+            <Select
+              options={[
+                { label: "Productive", value: "Productive" },
+                { label: "Harvestive", value: "Harvestive" },
+                { label: "Packaging", value: "Packaging" },
+                { label: "Inspecting", value: "Inspecting" },
+              ]}
+            />
+          </Form.Item>
+
+          <Form.Item
+            label="Available Quantity"
+            name="available_quantity"
+            rules={[
+              { required: true, message: "Please enter available quantity" },
+            ]}
+          >
+            <Input type="number" />
+          </Form.Item>
+
+          <Form.Item
+            label="Total Quantity"
+            name="total_quantity"
+            rules={[{ required: true, message: "Please enter total quantity" }]}
+          >
+            <Input type="number" />
+          </Form.Item>
+
+          <Form.Item
+            label="Unit"
+            name="unit"
+            rules={[{ required: true, message: "Please enter unit" }]}
+          >
+            <Input />
+          </Form.Item>
+
+          <Flex align="center" justify="space-between">
+            <Button onClick={onDrawerClose}>Cancel</Button>
+            <SaveButton htmlType="submit" type="primary">
+              Save
+            </SaveButton>
           </Flex>
         </Form>
       </Spin>

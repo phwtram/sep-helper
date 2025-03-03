@@ -57,6 +57,8 @@ export const ItemDrawerForm = ({
           description: itemData.description,
           status: itemData.status,
           type: itemData.type,
+          quantity: itemData.quantity, // ✅ Thêm quantity
+          unit: itemData.unit, // ✅ Thêm unit
         });
         setImageUrl(itemData.image_url);
       } else {
@@ -95,13 +97,19 @@ export const ItemDrawerForm = ({
 
   const onFinish = async (values: any) => {
     setLoading(true);
-    const payload = {
+    const payload: any = {
       name: values.name,
       description: values.description,
+      quantity: Number(values.quantity) || 0,
+      unit: values.unit || "ml",
       status: values.status,
       type: values.type,
       image_url: imageUrl || "",
+      caringItems: null,
+      harvestingItems: null,
+      packagingItems: null,
     };
+    console.log("Payload gửi lên:", JSON.stringify(payload, null, 2));
 
     try {
       let response;
@@ -110,15 +118,13 @@ export const ItemDrawerForm = ({
       } else {
         response = await axiosClient.post("/api/items", payload);
       }
+      console.log("Response từ server:", response.data);
 
       if (response.data.status === 200) {
         message.success(
           action === "edit" ? "Cập nhật thành công!" : "Tạo mới thành công!"
         );
-        onMutationSuccess?.();
-        if (typeof onMutationSuccess === "function") {
-          onMutationSuccess(); // Gọi lại fetchItems() từ ItemsListTable
-        }
+        onMutationSuccess?.(response.data.data); // ✅ Trả về dữ liệu mới
         onDrawerClose();
       } else {
         message.error("Có lỗi xảy ra!");
@@ -216,11 +222,26 @@ export const ItemDrawerForm = ({
             <Select
               options={[
                 { label: "Productive", value: "Productive" },
-                { label: "Harvestive", value: "Harvestive" },
+                { label: "Harvesting", value: "Harvesting" },
                 { label: "Packaging", value: "Packaging" },
                 { label: "Inspecting", value: "Inspecting" },
               ]}
             />
+          </Form.Item>
+          <Form.Item
+            label="Quantity"
+            name="quantity"
+            rules={[{ required: true, message: "Please enter quantity" }]}
+          >
+            <Input type="number" min={0} />
+          </Form.Item>
+
+          <Form.Item
+            label="Unit"
+            name="unit"
+            rules={[{ required: true, message: "Please enter unit" }]}
+          >
+            <Input />
           </Form.Item>
 
           <Flex align="center" justify="space-between">
