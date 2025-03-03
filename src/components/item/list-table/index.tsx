@@ -18,23 +18,29 @@ export const ItemsListTable: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
 
-  useEffect(() => {
-    const fetchItems = async () => {
-      try {
-        const response = await axiosClient.get("/api/items");
-        if (response.data.status === 200 && Array.isArray(response.data.data)) {
-          setItems(response.data.data);
-        } else {
-          setError("Không thể tải danh sách sản phẩm.");
-        }
-      } catch (err) {
-        console.error(err);
-        setError("Có lỗi xảy ra khi tải danh sách sản phẩm.");
-      } finally {
-        setLoading(false);
+  const fetchItems = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosClient.get("/api/items");
+      if (response.data.status === 200 && Array.isArray(response.data.data)) {
+        setItems(response.data.data);
+      } else {
+        setError("Không thể tải danh sách sản phẩm.");
       }
-    };
+    } catch (err) {
+      console.error(err);
+      setError("Có lỗi xảy ra khi tải danh sách sản phẩm.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  // Gọi fetchItems lại sau khi chỉnh sửa
+  const handleMutationSuccess = () => {
+    fetchItems();
+  };
+
+  useEffect(() => {
     fetchItems();
   }, []);
 
@@ -117,6 +123,7 @@ export const ItemsListTable: React.FC = () => {
         <ItemDrawerShow
           id={selectedItemId}
           onClose={() => setSelectedItemId(null)}
+          onMutationSuccess={handleMutationSuccess}
         />
       )}
     </>

@@ -19,9 +19,10 @@ import { ItemDrawerForm } from "../drawer-form";
 type Props = {
   id?: string;
   onClose?: () => void;
+  onMutationSuccess?: () => void; // Thêm callback cập nhật danh sách
 };
 
-export const ItemDrawerShow = ({ id, onClose }: Props) => {
+export const ItemDrawerShow = ({ id, onClose, onMutationSuccess }: Props) => {
   const { token } = theme.useToken();
   const breakpoint = Grid.useBreakpoint();
 
@@ -60,6 +61,7 @@ export const ItemDrawerShow = ({ id, onClose }: Props) => {
       await axiosClient.delete(`/api/items/${id}`);
       message.success("Xóa sản phẩm thành công");
       onClose?.();
+      onMutationSuccess?.(); // Cập nhật danh sách sau khi xóa
     } catch (err) {
       console.error(err);
       message.error("Xóa sản phẩm thất bại");
@@ -146,7 +148,10 @@ export const ItemDrawerShow = ({ id, onClose }: Props) => {
           id={id}
           action="edit"
           onClose={() => setEditOpen(false)}
-          onMutationSuccess={() => setEditOpen(false)}
+          onMutationSuccess={() => {
+            setEditOpen(false);
+            onMutationSuccess?.(); // Cập nhật danh sách sau khi chỉnh sửa
+          }}
         />
       )}
     </>
