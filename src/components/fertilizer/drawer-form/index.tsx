@@ -19,18 +19,18 @@ import { useGetToPath, useGo } from "@refinedev/core";
 import { useSearchParams } from "react-router";
 
 const statusOptions = [
-  { label: "In Stock", value: "InStock" },
-  { label: "Out of Stock", value: "OutStock" },
-  { label: "Unactivated", value: "UnActived" },
+  { label: "Available", value: true },
+  { label: "Unavailable", value: false },
 ];
 
 const typeOptions = [
-  { label: "Organic", value: "Organic" },
-  { label: "Chemical", value: "Chemical" },
-  { label: "Mixed", value: "Mixed" },
+  { label: "Vi sinh", value: "Vi sinh" },
+  { label: "Hữu cơ", value: "Hữu cơ" },
+  { label: "Hóa học", value: "Hóa học" },
 ];
 
 const unitOptions = [
+  { label: "kg", value: "kg" },
   { label: "Bao 2kg", value: "Bao 2kg" },
   { label: "Bao 3kg", value: "Bao 3kg" },
 ];
@@ -65,11 +65,16 @@ export const FertilizerDrawerForm = ({
   const fetchFertilizerDetails = async () => {
     setLoading(true);
     try {
-      const response = await axiosClient.get(`/api/fertilizer/${id}`);
+      const response = await axiosClient.get(`/api/fertilizers/${id}`);
       if (response.data.status === 200) {
         const itemData = response.data.data;
-        form.setFieldsValue(itemData);
-        setImageUrl(itemData.image_url);
+        form.setFieldsValue({
+          ...itemData,
+          available_quantity: itemData.availableQuantity,
+          total_quantity: itemData.totalQuantity,
+          status: itemData.status === "true",
+        });
+        setImageUrl(itemData.image);
       } else {
         message.error("Không thể tải thông tin phân bón.");
       }
@@ -99,7 +104,7 @@ export const FertilizerDrawerForm = ({
 
     try {
       const response = await axiosClient.post(
-        "/api/fertilizer/images/upload",
+        "/api/fertilizers/images/upload",
         formData,
         {
           headers: { "Content-Type": "multipart/form-data" },
@@ -107,9 +112,9 @@ export const FertilizerDrawerForm = ({
       );
 
       if (response.data.status === 200) {
-        const uploadedImageUrl = response.data.image_url;
+        const uploadedImageUrl = response.data.image;
         setImageUrl(uploadedImageUrl);
-        form.setFieldsValue({ image_url: uploadedImageUrl }); // Cập nhật form
+        form.setFieldsValue({ image: uploadedImageUrl });
         message.success("Tải ảnh lên thành công!");
       } else {
         message.error("Lỗi khi tải ảnh lên.");
@@ -122,14 +127,20 @@ export const FertilizerDrawerForm = ({
   const onFinish = async (values: any) => {
     setLoading(true);
 
-    const payload = { ...values, image_url: imageUrl || "" };
+    const payload = {
+      ...values,
+      image: imageUrl || "",
+      available_quantity: values.available_quantity,
+      total_quantity: values.total_quantity,
+      status: values.status ? "true" : "false",
+    };
 
     try {
       let response;
       if (action === "edit") {
-        response = await axiosClient.put(`/api/fertilizer/${id}`, payload);
+        response = await axiosClient.put(`/api/fertilizers/${id}`, payload);
       } else {
-        response = await axiosClient.post("/api/fertilizer", payload);
+        response = await axiosClient.post("/api/fertilizers", payload);
       }
 
       if (response.data.status === 200) {
@@ -188,16 +199,14 @@ export const FertilizerDrawerForm = ({
             name="name"
             rules={[{ required: true, message: "Please enter a name" }]}
           >
-            {" "}
-            <Input />{" "}
+            <Input />
           </Form.Item>
           <Form.Item
             label="Description"
             name="description"
             rules={[{ required: true, message: "Please enter a description" }]}
           >
-            {" "}
-            <Input.TextArea rows={4} />{" "}
+            <Input.TextArea rows={4} />
           </Form.Item>
           <Form.Item
             label="Available Quantity"

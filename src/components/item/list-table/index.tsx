@@ -17,11 +17,15 @@ export const ItemsListTable: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
   const fetchItems = async () => {
     setLoading(true);
     try {
-      const response = await axiosClient.get("/api/items");
+      const response = await axiosClient.get("/api/items", {
+        params: { page: currentPage, limit: pageSize },
+      });
       if (response.data.status === 200 && Array.isArray(response.data.data)) {
         setItems(response.data.data);
       } else {
@@ -81,6 +85,12 @@ export const ItemsListTable: React.FC = () => {
         rowKey="id"
         scroll={{ x: true }}
         pagination={{
+          current: currentPage,
+          pageSize: pageSize,
+          onChange: (page, pageSize) => {
+            setCurrentPage(page);
+            setPageSize(pageSize);
+          },
           showTotal: (total) => (
             <PaginationTotal total={total} entityName="items" />
           ),

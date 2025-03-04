@@ -143,7 +143,7 @@ export const ItemDrawerForm = ({
     }
     go({
       to: searchParams.get("to") ?? getToPath({ action: "list" }) ?? "",
-      query: { to: undefined },
+      query: { ...Object.fromEntries(searchParams.entries()) },
       options: { keepQuery: true },
       type: "replace",
     });

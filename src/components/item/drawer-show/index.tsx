@@ -20,7 +20,7 @@ import { ItemDrawerForm } from "../drawer-form";
 type Props = {
   id?: string;
   onClose?: () => void;
-  onMutationSuccess?: () => void; // Thêm callback cập nhật danh sách
+  onMutationSuccess: (newItem: IItem) => void; // Thêm callback cập nhật danh sách
 };
 
 export const ItemDrawerShow = ({ id, onClose, onMutationSuccess }: Props) => {
